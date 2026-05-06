@@ -1,0 +1,20 @@
+# Ambientes Virtuais e Dependências
+node_modules/
+venv/
+env/
+.env
+
+# Arquivos de Banco de Dados
+*.db
+*.sqlite3
+
+# Arquivos de Cache e Build
+dist/
+build/
+__pycache__/
+*.pyc
+.vite/
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
