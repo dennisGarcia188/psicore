@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Calendar as CalendarIcon, DollarSign, BarChart2, FileText, Settings, LogOut, LayoutDashboard } from 'lucide-react';
+import { Users, Calendar as CalendarIcon, DollarSign, BarChart2, FileText, Settings as SettingsIcon, LogOut, LayoutDashboard, Book } from 'lucide-react';
 import PatientsList from './PatientsList';
 import PatientDetail from './PatientDetail';
 import CalendarView from './Calendar';
@@ -9,6 +9,7 @@ import Reports from './Reports';
 import Templates from './Templates';
 import SettingsPage from './Settings';
 import Home from './Home';
+import DsmConsult from './DsmConsult';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -29,17 +30,19 @@ export default function Dashboard() {
     <Link 
       to={to} 
       style={{ 
-        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '99px',
+        display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: '99px',
         backgroundColor: isActive(to) ? 'var(--color-primary)' : 'transparent',
         color: isActive(to) ? 'white' : 'var(--color-text-muted)',
         fontWeight: isActive(to) ? 600 : 500,
-        fontSize: '0.875rem',
-        transition: 'all var(--transition-fast)'
+        fontSize: '0.8rem',
+        transition: 'all var(--transition-fast)',
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
       }}
       onMouseOver={(e) => { if (!isActive(to)) e.currentTarget.style.color = 'var(--color-primary)' }}
       onMouseOut={(e) => { if (!isActive(to)) e.currentTarget.style.color = 'var(--color-text-muted)' }}
     >
-      <Icon size={18} />
+      <Icon size={16} />
       {label}
     </Link>
   );
@@ -60,7 +63,8 @@ export default function Dashboard() {
               <NavItem to="/dashboard/finance" icon={DollarSign} label="Financeiro" />
               <NavItem to="/dashboard/reports" icon={BarChart2} label="Relatórios" />
               <NavItem to="/dashboard/templates" icon={FileText} label="Modelos" />
-              <NavItem to="/dashboard/settings" icon={Settings} label="Administração" />
+              <NavItem to="/dashboard/dsm" icon={Book} label="DSM-5" />
+              <NavItem to="/dashboard/settings" icon={SettingsIcon} label="Administração" />
             </nav>
           </div>
 
@@ -94,6 +98,7 @@ export default function Dashboard() {
           <Route path="/finance" element={<Finance />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/templates" element={<Templates />} />
+          <Route path="/dsm" element={<DsmConsult />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>

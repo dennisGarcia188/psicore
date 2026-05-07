@@ -18,6 +18,11 @@ class User(Base):
     name = Column(String)
     hashed_password = Column(String)
     
+    # Dados profissionais
+    crp = Column(String, nullable=True)           # Ex: CRP 06/12345
+    specialty = Column(String, nullable=True)     # Ex: Psicanálise, TCC
+    phone = Column(String, nullable=True)         # Telefone do psicólogo
+    
     patients = relationship("Patient", back_populates="owner")
     templates = relationship("RecordTemplate", back_populates="owner")
     clinic_settings = relationship("ClinicSettings", back_populates="owner", uselist=False)

@@ -1,0 +1,16 @@
+services:
+  psicore_db:
+    image: postgres:15-alpine
+    container_name: psicore_db
+    restart: always
+    environment:
+      POSTGRES_USER: psicore
+      POSTGRES_PASSWORD: psicore_secret
+      POSTGRES_DB: psicore
+    ports:
+      - "5432:5432"
+    volumes:
+      - psicore_pgdata:/var/lib/postgresql/data
+
+volumes:
+  psicore_pgdata:

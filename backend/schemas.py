@@ -14,9 +14,27 @@ class TokenData(BaseModel):
 class UserBase(BaseModel):
     email: EmailStr
     name: str
+    crp: Optional[str] = None
+    specialty: Optional[str] = None
+    phone: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
+    # Dados do consultório (criados junto com o usuário)
+    clinic_name: Optional[str] = None
+    clinic_cnpj: Optional[str] = None
+    clinic_address: Optional[str] = None
+    clinic_phone: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    crp: Optional[str] = None
+    specialty: Optional[str] = None
+    phone: Optional[str] = None
+    clinic_name: Optional[str] = None
+    clinic_cnpj: Optional[str] = None
+    clinic_address: Optional[str] = None
+    clinic_phone: Optional[str] = None
 
 class User(UserBase):
     id: int
@@ -60,6 +78,13 @@ class Appointment(AppointmentBase):
     patient_id: int
     class Config:
         from_attributes = True
+
+class AppointmentPatch(BaseModel):
+    date_time: Optional[datetime] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    fee: Optional[float] = None
+    is_paid: Optional[bool] = None
 
 # --- Record Template ---
 class RecordTemplateBase(BaseModel):

@@ -59,6 +59,22 @@ def update_appointment(appointment_id: int, appointment_update: schemas.Appointm
     db.refresh(db_appointment)
     return db_appointment
 
+@router.patch("/{appointment_id}", response_model=schemas.Appointment)
+def patch_appointment(appointment_id: int, data: schemas.AppointmentPatch, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """Atualiza parcialmente um agendamento (ex: só o status ou só a data)."""
+    db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+    if not db_appointment:
+        raise HTTPException(status_code=404, detail="Consulta não encontrada")
+    verify_patient_owner(db_appointment.patient_id, db, current_user)
+
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_appointment, field, value)
+
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
 @router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_appointment(appointment_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()

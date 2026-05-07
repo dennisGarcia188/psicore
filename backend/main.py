@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # Carrega as variáveis do arquivo .env antes de qualquer import
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
@@ -11,7 +14,9 @@ app = FastAPI(title="API Gestão para Psicólogos")
 # Configuração de CORS
 origins = [
     "http://localhost",
-    "http://localhost:5173", # Porta padrão do Vite
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
 ]
 
 app.add_middleware(
