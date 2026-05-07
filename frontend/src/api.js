@@ -4,11 +4,13 @@ const api = axios.create({
   baseURL: 'http://localhost:8000', // URL base do FastAPI
 });
 
-// Adiciona o token em todas as requisições
+// Adiciona o token em todas as requisições — mas NÃO sobrescreve se já foi definido manualmente
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!config.headers.Authorization) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });

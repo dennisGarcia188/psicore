@@ -1,52 +1,62 @@
+/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 :root {
-  /* Paleta de Cores Premium (Soft & Clean para Saúde Mental - Medical V2) */
-  --color-primary: #0284C7; /* Light Blue 600 */
-  --color-primary-hover: #0369A1;
-  --color-secondary: #0D9488; /* Teal 600 */
-  --color-background: #F8FAFC; /* Slate 50 */
-  --color-surface: #FFFFFF;
-  --color-text-main: #0F172A; /* Slate 900 */
-  --color-text-muted: #64748B; /* Slate 500 */
-  --color-border: #E2E8F0; /* Slate 200 */
-  --color-success: #10B981;
-  --color-error: #EF4444;
-  --color-warning: #F59E0B;
+  /* Paleta de Cores (Clean para Saúde Mental) */
+  --color-primary:        #0284C7;
+  --color-primary-hover:  #0369A1;
+  --color-secondary:      #0D9488;
+  --color-background:     #F8FAFC;
+  --color-surface:        #FFFFFF;
+  --color-border:         #E2E8F0;
+  --color-text-main:      #0F172A;
+  --color-text-muted:     #64748B;
+  --color-success:        #10B981;
+  --color-error:          #EF4444;
+  --color-warning:        #F59E0B;
 
   /* Tipografia */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
+  --font-size-sm:  0.875rem;
+  --font-size-md:  1rem;
+  --font-size-lg:  1.125rem;
+  --font-size-xl:  1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
 
-  /* Espaçamentos e Raios */
+  /* Espaçamentos */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
+
+  /* Raios */
+  --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
 
-  /* Sombras Modernas (Glass/Soft) */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 
-  /* Transições Suaves */
-  --transition-fast: 0.15s ease-in-out;
+  /* Transições */
+  --transition-fast:   0.15s ease-in-out;
   --transition-normal: 0.3s ease-in-out;
 }
 
-* {
+/* ─── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-family);
@@ -57,22 +67,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+a  { color: inherit; text-decoration: none; }
+ul { list-style: none; }
 
-ul {
-  list-style: none;
-}
-
-/* Utilities Globais */
+/* ─── Layout ─────────────────────────────────────────────────────────────────── */
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-lg);
 }
 
+/* ─── Buttons ────────────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -80,23 +85,28 @@ ul {
   gap: var(--spacing-sm);
   padding: 0.625rem 1.25rem;
   border-radius: var(--radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: none;
+  font-weight: 600;
   font-size: var(--font-size-sm);
   font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .btn-primary {
   background-color: var(--color-primary);
   color: white;
 }
-
 .btn-primary:hover {
   background-color: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {
@@ -104,11 +114,11 @@ ul {
   color: var(--color-text-main);
   border: 1px solid var(--color-border);
 }
-
 .btn-secondary:hover {
   background-color: var(--color-border);
 }
 
+/* ─── Forms ──────────────────────────────────────────────────────────────────── */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -128,54 +138,48 @@ ul {
   border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--font-size-md);
-  transition: all var(--transition-fast);
   background-color: var(--color-surface);
   color: var(--color-text-main);
   width: 100%;
+  transition: all var(--transition-fast);
+}
+
+.input-control::placeholder {
+  color: var(--color-text-muted);
 }
 
 .input-control:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 0 0 4px rgba(2,132,199,0.15);
 }
 
-/* Modal Improvements */
+/* ─── Modal ──────────────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(15, 23, 42, 0.6);
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(4px);
   z-index: 9999;
-  padding: 3rem 1rem;
   overflow-y: auto;
+  overflow-x: hidden;
+  /* padding-top maior para não sobrepor a topbar (altura ~70px + folga) */
+  padding: 5rem 1rem 2rem;
 }
 
 .modal-content {
   background-color: var(--color-surface);
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 600px;
   box-shadow: var(--shadow-lg);
   position: relative;
+  /* Centraliza horizontalmente, margem automática no topo/base para scroll funcionar */
   margin: 0 auto;
 }
 
-/* Animações Keyframes para Entrada de Páginas */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
-}
-
-/* Tabelas Premium */
+/* ─── Tables ─────────────────────────────────────────────────────────────────── */
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -198,7 +202,7 @@ ul {
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background-color: rgba(248, 250, 252, 0.5);
+  background-color: rgba(248,250,252,0.5);
 }
 
 .table td {
@@ -208,14 +212,10 @@ ul {
   font-size: var(--font-size-sm);
 }
 
-.table tr:last-child td {
-  border-bottom: none;
-}
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background-color: rgba(2,132,199,0.02); }
 
-.table tr:hover td {
-  background-color: rgba(2, 132, 199, 0.02);
-}
-
+/* ─── Badges ─────────────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -224,22 +224,57 @@ ul {
   font-size: 0.75rem;
   font-weight: 600;
 }
-.badge-success { background-color: rgba(16, 185, 129, 0.1); color: var(--color-success); }
-.badge-warning { background-color: rgba(245, 158, 11, 0.1); color: var(--color-warning); }
-.badge-primary { background-color: rgba(2, 132, 199, 0.1); color: var(--color-primary); }
+.badge-success { background: rgba(16,185,129,0.1);  color: var(--color-success); }
+.badge-warning { background: rgba(245,158,11,0.1);  color: var(--color-warning); }
+.badge-error   { background: rgba(239,68,68,0.1);   color: var(--color-error); }
+.badge-primary { background: rgba(2,132,199,0.1);   color: var(--color-primary); }
 
-/* Calendário overrides para react-big-calendar */
+/* ─── Animações ────────────────────────────────────────────────────────────────── */
+/* IMPORTANTE: Não usar transform aqui!
+   Transform cria um novo "containing block" e quebra o position:fixed dos modais */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+/* ─── React Big Calendar — Light Overrides ───────────────────────────────────── */
 .rbc-calendar {
   font-family: var(--font-family) !important;
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
+}
+.rbc-header {
+  border-color: var(--color-border) !important;
+  color: var(--color-text-muted) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.5rem 0 !important;
 }
 .rbc-event {
   background-color: var(--color-primary) !important;
   border-radius: var(--radius-md) !important;
+  border: none !important;
 }
-.rbc-today {
-  background-color: rgba(2, 132, 199, 0.05) !important;
+.rbc-today { background-color: rgba(2,132,199,0.05) !important; }
+.rbc-toolbar button {
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  color: var(--color-text-muted) !important;
+  border-color: var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  transition: all var(--transition-fast) !important;
 }
+.rbc-toolbar button:hover,
+.rbc-toolbar button.rbc-active {
+  background-color: rgba(2,132,199,0.08) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+.rbc-toolbar-label {
+  font-weight: 700 !important;
+  color: var(--color-text-main) !important;
+}
+.rbc-current-time-indicator { background-color: var(--color-primary) !important; }

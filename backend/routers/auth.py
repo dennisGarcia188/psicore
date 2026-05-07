@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import jwt
+import datetime
 
 from database import get_db
 import models, schemas, utils
@@ -82,7 +83,16 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             detail="Email ou senha incorretos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sua conta está suspensa. Entre em contato com o suporte.",
+        )
+
+    # Registrar last_login
+    user.last_login = datetime.datetime.utcnow()
+    db.commit()
+
     access_token_expires = utils.timedelta(minutes=utils.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = utils.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires

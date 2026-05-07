@@ -60,7 +60,7 @@ export default function Home() {
           <Link to="/dashboard/patients" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Plus size={16} /> Novo Paciente
           </Link>
-          <Link to="/dashboard/appointments/new" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Link to="/dashboard/calendar" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <CalendarPlus size={16} /> Nova Consulta
           </Link>
         </div>
@@ -98,7 +98,7 @@ export default function Home() {
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
             <CalendarPlus size={40} style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
             <p>Nenhuma consulta agendada ainda.</p>
-            <Link to="/dashboard/appointments/new" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-flex' }}>
+            <Link to="/dashboard/calendar" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-flex' }}>
               <Plus size={16} /> Agendar Consulta
             </Link>
           </div>

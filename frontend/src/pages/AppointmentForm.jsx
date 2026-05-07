@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CalendarPlus } from 'lucide-react';
 import api from '../api';
+import DateTimePicker from '../components/DateTimePicker';
 
 export default function AppointmentForm() {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [formData, setFormData] = useState({
     patient_id: '',
-    date_time: '',
+    date_time: null,
     fee: 0,
     status: 'Aguardando Confirmação'
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchPatients();
-  }, []);
+  useEffect(() => { fetchPatients(); }, []);
 
   const fetchPatients = async () => {
     try {
@@ -28,22 +29,24 @@ export default function AppointmentForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.patient_id) {
-      alert("Selecione um paciente");
-      return;
-    }
+    setError('');
 
+    if (!formData.patient_id) { setError('Selecione um paciente.'); return; }
+    if (!formData.date_time) { setError('Selecione a data e horário da consulta.'); return; }
+
+    setSubmitting(true);
     try {
-      const payload = {
+      await api.post('/appointments/', {
         patient_id: parseInt(formData.patient_id),
         date_time: new Date(formData.date_time).toISOString(),
-        fee: parseFloat(formData.fee),
+        fee: parseFloat(formData.fee) || 0,
         status: formData.status
-      };
-      await api.post('/appointments/', payload);
+      });
       navigate('/dashboard/calendar');
     } catch (err) {
-      console.error('Erro ao criar agendamento', err);
+      setError(err.response?.data?.detail || 'Erro ao criar agendamento.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -53,19 +56,33 @@ export default function AppointmentForm() {
         <ArrowLeft size={20} /> Voltar para a Agenda
       </Link>
 
-      <div style={{ backgroundColor: 'var(--color-surface)', padding: '2.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', maxWidth: '600px', margin: '0 auto' }}>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '2rem' }}>Novo Agendamento</h2>
-        
+      <div style={{ backgroundColor: 'var(--color-surface)', padding: '2.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', maxWidth: '580px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(2,132,199,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CalendarPlus size={22} color="var(--color-primary)" />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Novo Agendamento</h2>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Preencha os dados da consulta</p>
+          </div>
+        </div>
+
+        {error && (
+          <div style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: 'var(--color-error)', padding: '0.875rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label>Paciente *</label>
-            <select 
-              className="input-control" 
-              required
+            <select
+              className="input-control"
               value={formData.patient_id}
-              onChange={e => setFormData({...formData, patient_id: e.target.value})}
+              onChange={e => setFormData({ ...formData, patient_id: e.target.value })}
+              required
             >
-              <option value="">-- Selecione o Paciente --</option>
+              <option value="">— Selecione o Paciente —</option>
               {patients.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -74,42 +91,45 @@ export default function AppointmentForm() {
 
           <div className="input-group">
             <label>Data e Hora *</label>
-            <input 
-              type="datetime-local" 
-              className="input-control" 
-              required 
+            <DateTimePicker
               value={formData.date_time}
-              onChange={e => setFormData({...formData, date_time: e.target.value})}
+              onChange={(date) => setFormData({ ...formData, date_time: date })}
+              placeholder="Selecionar data e horário"
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
             <div className="input-group">
               <label>Status</label>
-              <select 
-                className="input-control" 
+              <select
+                className="input-control"
                 value={formData.status}
-                onChange={e => setFormData({...formData, status: e.target.value})}
+                onChange={e => setFormData({ ...formData, status: e.target.value })}
               >
                 <option value="Aguardando Confirmação">Aguardando Confirmação</option>
                 <option value="Confirmada">Confirmada</option>
               </select>
             </div>
-            
             <div className="input-group">
               <label>Valor da Consulta (R$)</label>
-              <input 
-                type="number" 
-                step="0.01" 
-                className="input-control" 
+              <input
+                type="number" step="0.01" min="0"
+                className="input-control"
                 value={formData.fee}
-                onChange={e => setFormData({...formData, fee: e.target.value})}
+                onChange={e => setFormData({ ...formData, fee: e.target.value })}
+                placeholder="0,00"
               />
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem' }}>
-            Salvar Agendamento
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%', marginTop: '1.5rem', padding: '1rem', fontSize: '1rem' }}
+            disabled={submitting}
+          >
+            <CalendarPlus size={18} />
+            {submitting ? 'Salvando...' : 'Confirmar Agendamento'}
           </button>
         </form>
       </div>

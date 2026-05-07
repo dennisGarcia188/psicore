@@ -38,6 +38,8 @@ class UserUpdate(BaseModel):
 
 class User(UserBase):
     id: int
+    is_admin: bool = False
+    is_active: bool = True
     class Config:
         from_attributes = True
 
