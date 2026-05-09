@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, LogOut, ChevronRight, Settings } from 'lucide-react-native';
+import { User, LogOut, ChevronRight, Settings, Building2 } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../api';
+import ScreenHeader from '../components/ScreenHeader';
 
 export default function Menu({ navigation }) {
   const [profile, setProfile] = useState(null);
@@ -55,10 +56,8 @@ export default function Menu({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Menu</Text>
-      </View>
+    <View style={styles.container}>
+      <ScreenHeader title="Menu" showProfile={false} />
 
       <ScrollView style={styles.content}>
         <View style={styles.profileCard}>
@@ -77,9 +76,9 @@ export default function Menu({ navigation }) {
         <Text style={styles.sectionTitle}>Configurações</Text>
         
         <View style={styles.menuGroup}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert('Aviso', 'Funcionalidade na web.')}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ClinicData')}>
             <View style={styles.menuIconBox}>
-              <User size={20} color="#0284C7" />
+              <Building2 size={20} color="#0284C7" />
             </View>
             <Text style={styles.menuText}>Dados do Consultório</Text>
             <ChevronRight size={20} color="#CBD5E1" />
@@ -103,20 +102,13 @@ export default function Menu({ navigation }) {
         
         <Text style={styles.versionText}>PsiCore Mobile v2.0</Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC' },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    backgroundColor: '#F8FAFC',
-  },
-  headerTitle: { fontSize: 28, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 16 },
   profileCard: {
     backgroundColor: '#FFFFFF',

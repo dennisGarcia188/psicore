@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CalendarPlus } from 'lucide-react';
 import api from '../api';
 import DateTimePicker from '../components/DateTimePicker';
+import CurrencyInput from 'react-currency-input-field';
 
 export default function AppointmentForm() {
   const navigate = useNavigate();
@@ -112,12 +113,17 @@ export default function AppointmentForm() {
             </div>
             <div className="input-group">
               <label>Valor da Consulta (R$)</label>
-              <input
-                type="number" step="0.01" min="0"
+              <CurrencyInput
+                id="fee"
+                name="fee"
+                placeholder="R$ 0,00"
+                decimalsLimit={2}
+                decimalSeparator=","
+                groupSeparator="."
+                prefix="R$ "
                 className="input-control"
                 value={formData.fee}
-                onChange={e => setFormData({ ...formData, fee: e.target.value })}
-                placeholder="0,00"
+                onValueChange={(value) => setFormData({ ...formData, fee: value })}
               />
             </div>
           </div>

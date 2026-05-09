@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Calendar as CalendarIcon, DollarSign, BarChart2, FileText, Settings as SettingsIcon, LogOut, LayoutDashboard, Book } from 'lucide-react';
+import { Users, Calendar as CalendarIcon, DollarSign, BarChart2, FileText, Settings as SettingsIcon, LogOut, LayoutDashboard, Book, Brain } from 'lucide-react';
 import PatientsList from './PatientsList';
 import PatientDetail from './PatientDetail';
 import CalendarView from './Calendar';
@@ -10,10 +11,13 @@ import Templates from './Templates';
 import SettingsPage from './Settings';
 import Home from './Home';
 import DsmConsult from './DsmConsult';
+import Footer from '../components/Footer';
+import SupportModal from '../components/SupportModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -50,11 +54,14 @@ export default function Dashboard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
       {/* Topbar */}
-      <header style={{ backgroundColor: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 100 }}>
+      <header style={{ backgroundColor: 'rgba(2,132,199,0.04)', borderBottom: '1px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <h1 style={{ color: 'var(--color-primary)', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>PsiCore</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Brain size={28} color="var(--color-primary)" strokeWidth={2.5} />
+              <h1 style={{ color: 'var(--color-primary)', fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>PsiCore</h1>
+            </div>
             
             <nav style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.25rem', scrollbarWidth: 'none' }}>
               <NavItem to="/dashboard" icon={LayoutDashboard} label="Visão Geral" />
@@ -94,14 +101,18 @@ export default function Dashboard() {
           <Route path="/patients" element={<PatientsList />} />
           <Route path="/patients/:id" element={<PatientDetail />} />
           <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/appointments/new" element={<AppointmentForm />} />
+          <Route path="/appointment/new" element={<AppointmentForm />} />
           <Route path="/finance" element={<Finance />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/templates" element={<Templates />} />
-          <Route path="/dsm" element={<DsmConsult />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/dsm" element={<DsmConsult />} />
         </Routes>
       </main>
+
+      <Footer onContactClick={() => setShowSupportModal(true)} />
+
+      {showSupportModal && <SupportModal onClose={() => setShowSupportModal(false)} />}
     </div>
   );
 }

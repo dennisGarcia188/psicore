@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Users, CheckCircle, Clock, Plus, CalendarPlus, ChevronRight, Calendar, Mail, MessageCircle } from 'lucide-react';
+import { Users, User, CheckCircle, Clock, Plus, CalendarPlus, ChevronRight, Calendar, Mail, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format, isToday, isTomorrow, parseISO, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../api';
+import AppointmentModal from '../components/AppointmentModal';
 
 const STATUS_COLOR = {
   'Confirmada': 'var(--color-success)',
@@ -17,6 +18,7 @@ export default function Home() {
   const [allAppts, setAllAppts] = useState([]);
   const [patients, setPatients] = useState([]);
   const [viewMode, setViewMode] = useState('today'); // 'today' | 'week'
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -79,16 +81,62 @@ export default function Home() {
     return format(d, "EEEE, dd 'de' MMMM", { locale: ptBR });
   };
 
-  const AppointmentRow = ({ appt, isLast }) => (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '0.875rem 1.5rem', borderBottom: isLast ? 'none' : '1px solid var(--color-border)', gap: '1rem' }}>
-      <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: STATUS_COLOR[appt.status] || 'var(--color-text-muted)', flexShrink: 0 }} />
-      <div style={{ flex: 1 }}>
-        <p style={{ fontWeight: 600, color: 'var(--color-text-main)', marginBottom: '2px' }}>{appt.patient_name}</p>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{formatDateLabel(appt.date_time)}</p>
+  const AppointmentCard = ({ appt }) => (
+    <div 
+      style={{ 
+        backgroundColor: 'var(--color-surface)', 
+        padding: '1.5rem', 
+        borderRadius: 'var(--radius-xl)', 
+        boxShadow: 'var(--shadow-sm)', 
+        cursor: 'pointer', 
+        transition: 'all 0.2s ease',
+        border: '1px solid var(--color-border)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+      onMouseOver={e => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+        e.currentTarget.style.borderColor = 'var(--color-primary)';
+      }}
+      onMouseOut={e => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        e.currentTarget.style.borderColor = 'var(--color-border)';
+      }}
+      onClick={() => setSelectedAppointment(appt)}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', backgroundColor: STATUS_COLOR[appt.status] || 'var(--color-text-muted)' }} />
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: 'var(--color-background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <User size={22} color="var(--color-primary)" />
+        </div>
+        <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.25rem 0.6rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[appt.status]}15`, color: STATUS_COLOR[appt.status], textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          {appt.status}
+        </span>
       </div>
-      <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.65rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[appt.status]}20`, color: STATUS_COLOR[appt.status], whiteSpace: 'nowrap' }}>
-        {appt.status}
-      </span>
+
+      <div>
+        <h4 style={{ fontWeight: 700, color: 'var(--color-text-main)', fontSize: '1.15rem', marginBottom: '0.35rem' }}>{appt.patient_name}</h4>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+          <Clock size={14} />
+          <span>{formatDateLabel(appt.date_time)}</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px dotted var(--color-border)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Valor</span>
+          <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text-main)' }}>R$ {appt.fee?.toFixed(2)}</span>
+        </div>
+        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(2,132,199,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
+          <ChevronRight size={18} />
+        </div>
+      </div>
     </div>
   );
 
@@ -101,9 +149,31 @@ export default function Home() {
       alert('E-mail de felicitações enviado com sucesso!');
     } catch (err) {
       console.error(err);
-      alert('Erro ao enviar e-mail. Verifique se o paciente possui e-mail cadastrado e se o servidor está online.');
+      alert('Erro ao enviar e-mail.');
     } finally {
       setSendingEmailId(null);
+    }
+  };
+
+  const handleUpdateAppointment = async (updatedData) => {
+    try {
+      await api.put(`/appointments/${updatedData.id}`, updatedData);
+      setSelectedAppointment(null);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao atualizar consulta.');
+    }
+  };
+
+  const handleDeleteAppointment = async (id) => {
+    try {
+      await api.delete(`/appointments/${id}`);
+      setSelectedAppointment(null);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao excluir consulta.');
     }
   };
 
@@ -157,7 +227,7 @@ export default function Home() {
       )}
 
       {/* Cards de Estatísticas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
         {[
           { title: 'Consultas Confirmadas', value: stats.confirmed, icon: CheckCircle, color: 'var(--color-success)', bg: 'rgba(16,185,129,0.1)' },
           { title: 'Aguardando Confirmação', value: stats.pending, icon: Clock, color: 'var(--color-warning)', bg: 'rgba(245,158,11,0.1)' },
@@ -175,68 +245,79 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Consultas com toggle Hoje / Semana */}
-      <div style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h3 style={{ fontWeight: 700, fontSize: '1.1rem', margin: 0 }}>Consultas</h3>
-            {/* Toggle Hoje / Semana */}
-            <div style={{ display: 'flex', backgroundColor: 'var(--color-background)', borderRadius: '99px', padding: '3px', gap: '2px' }}>
-              {[{ key: 'today', label: 'Hoje' }, { key: 'week', label: 'Semana' }].map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setViewMode(key)}
-                  style={{
-                    padding: '0.3rem 0.875rem', borderRadius: '99px', border: 'none', cursor: 'pointer',
-                    fontFamily: 'inherit', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.15s',
-                    backgroundColor: viewMode === key ? 'var(--color-primary)' : 'transparent',
-                    color: viewMode === key ? 'white' : 'var(--color-text-muted)',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+      {/* Header da Seção de Consultas */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h3 style={{ fontWeight: 700, fontSize: '1.25rem', margin: 0 }}>Consultas Próximas</h3>
+          <div style={{ display: 'flex', backgroundColor: 'var(--color-border)', borderRadius: '99px', padding: '3px', gap: '2px' }}>
+            {[{ key: 'today', label: 'Hoje' }, { key: 'week', label: 'Semana' }].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setViewMode(key)}
+                style={{
+                  padding: '0.4rem 1.25rem', borderRadius: '99px', border: 'none', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                  backgroundColor: viewMode === key ? 'var(--color-surface)' : 'transparent',
+                  color: viewMode === key ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  boxShadow: viewMode === key ? 'var(--shadow-sm)' : 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          <Link to="/dashboard/calendar" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            Ver agenda <ChevronRight size={16} />
+        </div>
+        <Link to="/dashboard/calendar" style={{ color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          Agenda completa <ChevronRight size={18} />
+        </Link>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ backgroundColor: 'var(--color-surface)', padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)' }}>
+          <Calendar size={48} style={{ margin: '0 auto 1.5rem', opacity: 0.2, color: 'var(--color-primary)' }} />
+          <h4 style={{ color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>Tudo limpo por aqui!</h4>
+          <p>Nenhuma consulta {viewMode === 'today' ? 'hoje' : 'esta semana'}.</p>
+          <Link to="/dashboard/calendar" className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+            <Plus size={16} /> Agendar Nova Consulta
           </Link>
         </div>
-
-        {filtered.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            <Calendar size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-            <p>Nenhuma consulta {viewMode === 'today' ? 'hoje' : 'esta semana'}.</p>
-            <Link to="/dashboard/calendar" className="btn btn-primary" style={{ marginTop: '1rem', display: 'inline-flex' }}>
-              <Plus size={16} /> Agendar Consulta
-            </Link>
-          </div>
-        ) : viewMode === 'today' ? (
-          <div>
-            {filtered.map((appt, i) => (
-              <AppointmentRow key={appt.id} appt={appt} isLast={i === filtered.length - 1} />
-            ))}
-          </div>
-        ) : (
-          <div>
-            {Object.entries(dayGroups).map(([dayKey, appts]) => (
-              <div key={dayKey}>
-                <div style={{ padding: '0.625rem 1.5rem', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'capitalize', letterSpacing: '0.03em' }}>
-                    {formatDayHeader(dayKey)}
-                  </span>
-                  <span style={{ marginLeft: '0.5rem', fontSize: '0.72rem', backgroundColor: 'rgba(2,132,199,0.1)', color: 'var(--color-primary)', padding: '0.1rem 0.5rem', borderRadius: '99px', fontWeight: 700 }}>
-                    {appts.length} consulta{appts.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-                {appts.map((appt, i) => (
-                  <AppointmentRow key={appt.id} appt={appt} isLast={i === appts.length - 1} />
+      ) : viewMode === 'today' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          {filtered.map(appt => (
+            <AppointmentCard key={appt.id} appt={appt} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).map(([dayKey, appts]) => (
+            <div key={dayKey}>
+              <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {formatDayHeader(dayKey)}
+                </h4>
+                <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--color-border)' }} />
+                <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '99px', fontWeight: 700 }}>
+                  {appts.length}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                {appts.map(appt => (
+                  <AppointmentCard key={appt.id} appt={appt} />
                 ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedAppointment && (
+        <AppointmentModal
+          appointment={selectedAppointment}
+          onClose={() => setSelectedAppointment(null)}
+          onSave={handleUpdateAppointment}
+          onDelete={handleDeleteAppointment}
+        />
+      )}
     </div>
   );
 }

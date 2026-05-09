@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Search, BookOpen } from 'lucide-react-native';
+import ScreenHeader from '../components/ScreenHeader';
 
 const DSM_DATA = [
   { code: 'F32.x', title: 'Transtorno Depressivo Maior', description: 'Caracterizado por humor deprimido na maior parte do dia, diminuição do interesse ou prazer, perda ou ganho de peso, insônia ou hipersonia, entre outros sintomas, durando pelo menos duas semanas.' },
@@ -46,12 +47,9 @@ export default function DsmConsult() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <ScreenHeader title="DSM-5" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Consulta DSM-5</Text>
-          <Text style={styles.headerSubtitle}>Base de conhecimento offline.</Text>
-        </View>
 
         <View style={styles.searchContainer}>
           <Search color="#94A3B8" size={20} />
@@ -75,20 +73,12 @@ export default function DsmConsult() {
           }
         />
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    backgroundColor: '#F8FAFC',
-  },
-  headerTitle: { fontSize: 28, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5 },
-  headerSubtitle: { fontSize: 14, color: '#64748B', marginTop: 4, fontWeight: '500' },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

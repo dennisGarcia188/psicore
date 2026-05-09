@@ -119,3 +119,6 @@ class ClinicSettings(ClinicSettingsBase):
     owner_id: int
     class Config:
         from_attributes = True
+
+class SupportRequest(BaseModel):
+    message: str

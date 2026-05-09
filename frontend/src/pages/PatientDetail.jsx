@@ -12,6 +12,10 @@ export default function PatientDetail() {
   
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [newNote, setNewNote] = useState({ date_time: '', notes: '', template_id: '' });
+  
+  const [editMode, setEditMode] = useState(false);
+  const [editedPatient, setEditedPatient] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetchPatientData();
@@ -22,6 +26,7 @@ export default function PatientDetail() {
     try {
       const pRes = await api.get(`/patients/${id}`);
       setPatient(pRes.data);
+      setEditedPatient(pRes.data);
       const aRes = await api.get(`/appointments/patient/${id}`);
       setAppointments(aRes.data);
     } catch (err) {
@@ -73,6 +78,21 @@ export default function PatientDetail() {
     }
   };
 
+  const handleUpdatePatient = async (e) => {
+    e.preventDefault();
+    setUpdating(true);
+    try {
+      await api.put(`/patients/${id}`, editedPatient);
+      setEditMode(false);
+      fetchPatientData();
+    } catch (err) {
+      console.error('Erro ao atualizar paciente', err);
+      alert('Erro ao atualizar os dados do paciente.');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (!patient) return <div>Carregando...</div>;
 
   const TabButton = ({ id, label, icon: Icon }) => (
@@ -113,16 +133,70 @@ export default function PatientDetail() {
 
       {activeTab === 'dados' && (
         <div style={{ backgroundColor: 'var(--color-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Informações Cadastrais</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+            <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Informações Cadastrais</h3>
+            {!editMode ? (
+              <button onClick={() => setEditMode(true)} className="btn btn-secondary">Editar Informações</button>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => { setEditMode(false); setEditedPatient(patient); }} className="btn" style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)' }}>Cancelar</button>
+                <button onClick={handleUpdatePatient} disabled={updating} className="btn btn-primary">{updating ? 'Salvando...' : 'Salvar Alterações'}</button>
+              </div>
+            )}
+          </div>
+          
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Nome Completo</strong>{patient.name}</div>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>CPF</strong>{patient.cpf || '-'}</div>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>RG</strong>{patient.rg || '-'}</div>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Data de Nascimento</strong>{patient.birth_date ? new Date(patient.birth_date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</div>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Profissão</strong>{patient.profession || '-'}</div>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Estado Civil</strong>{patient.marital_status || '-'}</div>
-            <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Endereço</strong>{patient.address || '-'}</div>
-            <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Contato de Emergência</strong>{patient.emergency_contact || '-'}</div>
+            {!editMode ? (
+              <>
+                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Nome Completo</strong>{patient.name}</div>
+                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>CPF</strong>{patient.cpf || '-'}</div>
+                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>RG</strong>{patient.rg || '-'}</div>
+                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Data de Nascimento</strong>{patient.birth_date ? new Date(patient.birth_date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</div>
+                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Profissão</strong>{patient.profession || '-'}</div>
+                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Estado Civil</strong>{patient.marital_status || '-'}</div>
+                <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Endereço</strong>{patient.address || '-'}</div>
+                <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Contato de Emergência</strong>{patient.emergency_contact || '-'}</div>
+              </>
+            ) : (
+              <>
+                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Nome Completo</label>
+                  <input type="text" className="input-control" value={editedPatient.name} onChange={e => setEditedPatient({...editedPatient, name: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>CPF</label>
+                  <input type="text" className="input-control" value={editedPatient.cpf} onChange={e => setEditedPatient({...editedPatient, cpf: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>RG</label>
+                  <input type="text" className="input-control" value={editedPatient.rg} onChange={e => setEditedPatient({...editedPatient, rg: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>Telefone</label>
+                  <input type="text" className="input-control" value={editedPatient.phone} onChange={e => setEditedPatient({...editedPatient, phone: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>E-mail</label>
+                  <input type="email" className="input-control" value={editedPatient.email} onChange={e => setEditedPatient({...editedPatient, email: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>Profissão</label>
+                  <input type="text" className="input-control" value={editedPatient.profession} onChange={e => setEditedPatient({...editedPatient, profession: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>Estado Civil</label>
+                  <input type="text" className="input-control" value={editedPatient.marital_status} onChange={e => setEditedPatient({...editedPatient, marital_status: e.target.value})} />
+                </div>
+                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Endereço</label>
+                  <input type="text" className="input-control" value={editedPatient.address} onChange={e => setEditedPatient({...editedPatient, address: e.target.value})} />
+                </div>
+                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Contato de Emergência</label>
+                  <input type="text" className="input-control" value={editedPatient.emergency_contact} onChange={e => setEditedPatient({...editedPatient, emergency_contact: e.target.value})} />
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

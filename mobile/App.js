@@ -12,6 +12,9 @@ import DsmConsult from './src/screens/DsmConsult';
 import Menu from './src/screens/Menu';
 import NewPatient from './src/screens/NewPatient';
 import NewAppointment from './src/screens/NewAppointment';
+import ClinicData from './src/screens/ClinicData';
+import AppointmentDetails from './src/screens/AppointmentDetails';
+import PatientDetails from './src/screens/PatientDetails';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -102,6 +105,21 @@ export default function App() {
         <Stack.Screen 
           name="NewAppointment" 
           component={NewAppointment} 
+          options={{ presentation: 'modal', headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="ClinicData" 
+          component={ClinicData} 
+          options={{ presentation: 'modal', headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="AppointmentDetails" 
+          component={AppointmentDetails} 
+          options={{ presentation: 'modal', headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="PatientDetails" 
+          component={PatientDetails} 
           options={{ presentation: 'modal', headerShown: false }} 
         />
       </Stack.Navigator>

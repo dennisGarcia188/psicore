@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from database import get_db
 import models, schemas
 from routers.auth import get_current_user
+from email_service import send_support_email
 
 router = APIRouter(
     prefix="/settings",
@@ -32,3 +33,8 @@ def update_settings(settings_update: schemas.ClinicSettingsCreate, db: Session =
     db.commit()
     db.refresh(db_settings)
     return db_settings
+
+@router.post("/support", status_code=status.HTTP_202_ACCEPTED)
+def request_support(payload: schemas.SupportRequest, background_tasks: BackgroundTasks, current_user: models.User = Depends(get_current_user)):
+    background_tasks.add_task(send_support_email, current_user.name, current_user.email, payload.message)
+    return {"message": "Sua mensagem foi enviada com sucesso!"}

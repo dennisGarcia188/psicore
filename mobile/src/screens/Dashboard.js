@@ -2,8 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Plus } from 'lucide-react-native';
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import api from '../api';
+import ScreenHeader from '../components/ScreenHeader';
 
 const STATUS_COLOR = {
   'Confirmada': '#10B981',
@@ -85,22 +86,26 @@ export default function Dashboard({ navigation }) {
     const color = STATUS_COLOR[item.status] || '#64748B';
 
     return (
-      <View style={styles.card}>
+      <TouchableOpacity 
+        style={styles.card}
+        onPress={() => navigation.navigate('AppointmentDetails', { appointment: item })}
+        activeOpacity={0.7}
+      >
         <View style={[styles.statusDot, { backgroundColor: color }]} />
         <View style={styles.cardContent}>
           <Text style={styles.time}>{dateDay}{time}</Text>
           <Text style={styles.patientName}>{item.patient_name}</Text>
           <Text style={[styles.statusText, { color }]}>{item.status}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sua Agenda</Text>
-        
+      <ScreenHeader title="Agenda" />
+      
+      <View style={styles.filterSection}>
         <View style={styles.filterContainer}>
           <TouchableOpacity 
             style={[styles.filterBtn, filter === 'hoje' && styles.filterBtnActive]} 
@@ -153,15 +158,13 @@ export default function Dashboard({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+  filterSection: {
     backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
-  headerTitle: { fontSize: 28, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5, marginBottom: 20 },
   filterContainer: {
     flexDirection: 'row',
     backgroundColor: '#F1F5F9',

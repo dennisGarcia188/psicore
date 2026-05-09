@@ -5,11 +5,11 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import ptBR from 'date-fns/locale/pt-BR';
-import { format as fmt } from 'date-fns';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Plus, X, CalendarClock, CheckCircle, Trash2, Save, FileText, Settings2, CalendarPlus, Users } from 'lucide-react';
+import { Plus, X, CalendarClock, CalendarPlus, Users } from 'lucide-react';
 import api from '../api';
 import DateTimePicker from '../components/DateTimePicker';
+import AppointmentModal from '../components/AppointmentModal';
 
 const locales = { 'pt-BR': ptBR };
 
@@ -20,8 +20,6 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales,
 });
-
-const STATUS_OPTIONS = ['Confirmada', 'Aguardando Confirmação', 'Realizada', 'Cancelada'];
 
 const STATUS_COLORS = {
   'Confirmada': '#0284C7',
@@ -37,12 +35,6 @@ export default function CalendarView() {
 
   // Modal de detalhes do agendamento
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState('dados');
-  const [editDate, setEditDate] = useState(null);
-  const [editStatus, setEditStatus] = useState('');
-  const [editNotes, setEditNotes] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   // Modal de NOVO agendamento
   const [showNewModal, setShowNewModal] = useState(false);
@@ -57,9 +49,13 @@ export default function CalendarView() {
   const [newError, setNewError] = useState('');
 
   useEffect(() => {
-    fetchAllAppointments();
-    fetchPatients();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    await fetchAllAppointments();
+    await fetchPatients();
+  };
 
   const fetchPatients = async () => {
     try {
@@ -99,46 +95,31 @@ export default function CalendarView() {
   const handleNavigate = useCallback((newDate) => setCurrentDate(newDate), []);
   const handleViewChange = useCallback((newView) => setCurrentView(newView), []);
 
-  const handleSelectEvent = useCallback((event) => {
+  const handleSelectEvent = (event) => {
     setSelectedEvent(event);
-    setActiveTab('dados');
-    setEditDate(new Date(event.start));
-    setEditStatus(event.resource?.status || 'Confirmada');
-    setEditNotes(event.resource?.notes || '');
-  }, []);
+  };
 
   const handleCloseModal = () => setSelectedEvent(null);
 
-  const handleSave = async () => {
-    if (!selectedEvent) return;
-    setSaving(true);
+  const handleSaveModal = async (updatedData) => {
     try {
-      await api.patch(`/appointments/${selectedEvent.id}`, {
-        date_time: editDate ? new Date(editDate).toISOString() : undefined,
-        status: editStatus,
-        notes: editNotes,
-      });
-      await fetchAllAppointments();
+      await api.put(`/appointments/${updatedData.id}`, updatedData);
       handleCloseModal();
+      fetchData();
     } catch (err) {
-      alert('Erro ao salvar. Tente novamente.');
-    } finally {
-      setSaving(false);
+      console.error(err);
+      alert('Erro ao atualizar agendamento');
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedEvent) return;
-    if (!window.confirm(`Excluir a consulta de ${selectedEvent.resource?.patient_name}?`)) return;
-    setDeleting(true);
+  const handleDeleteModal = async (id) => {
     try {
-      await api.delete(`/appointments/${selectedEvent.id}`);
-      await fetchAllAppointments();
+      await api.delete(`/appointments/${id}`);
       handleCloseModal();
+      fetchData();
     } catch (err) {
-      alert('Erro ao excluir.');
-    } finally {
-      setDeleting(false);
+      console.error(err);
+      alert('Erro ao excluir agendamento');
     }
   };
 
@@ -314,92 +295,13 @@ export default function CalendarView() {
         </div>
       )}
 
-      {/* ── Modal: Detalhes do Agendamento ─────────────────────────────────── */}
       {selectedEvent && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-              <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Detalhes da Consulta</h3>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Edite ou cancele o agendamento</p>
-              </div>
-              <button onClick={handleCloseModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
-                <X size={22} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem', flexShrink: 0 }}>
-                {selectedEvent.resource?.patient_name?.[0] || '?'}
-              </div>
-              <div>
-                <p style={{ fontWeight: 700 }}>{selectedEvent.resource?.patient_name}</p>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                  {fmt(selectedEvent.start, "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
-                </p>
-              </div>
-              <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: `${STATUS_COLORS[selectedEvent.resource?.status]}20`, color: STATUS_COLORS[selectedEvent.resource?.status] }}>
-                {selectedEvent.resource?.status}
-              </span>
-            </div>
-
-            {/* Abas */}
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
-              {[{ id: 'dados', label: 'Dados', icon: Settings2 }, { id: 'notas', label: 'Anotações da Sessão', icon: FileText }].map(({ id, label, icon: Icon }) => (
-                <button key={id} onClick={() => setActiveTab(id)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.75rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.875rem', fontWeight: activeTab === id ? 700 : 500, color: activeTab === id ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === id ? '2px solid var(--color-primary)' : '2px solid transparent', marginBottom: '-1px', transition: 'all 0.15s' }}>
-                  <Icon size={15} />{label}
-                </button>
-              ))}
-            </div>
-
-            {activeTab === 'dados' && (
-              <>
-                <div className="input-group">
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CalendarClock size={15} color="var(--color-primary)" /> Nova Data e Hora
-                  </label>
-                  <DateTimePicker value={editDate} onChange={(date) => setEditDate(date)} />
-                </div>
-                <div className="input-group" style={{ marginBottom: 0 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle size={15} color="var(--color-primary)" /> Status
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                    {STATUS_OPTIONS.map(s => (
-                      <button key={s} type="button" onClick={() => setEditStatus(s)} style={{ padding: '0.625rem', borderRadius: 'var(--radius-md)', border: '2px solid', borderColor: editStatus === s ? STATUS_COLORS[s] : 'var(--color-border)', backgroundColor: editStatus === s ? `${STATUS_COLORS[s]}15` : 'transparent', color: editStatus === s ? STATUS_COLORS[s] : 'var(--color-text-muted)', fontWeight: editStatus === s ? 700 : 500, cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.15s', fontFamily: 'inherit' }}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {activeTab === 'notas' && (
-              <div>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-                  📝 Anotações desta sessão
-                </label>
-                <textarea
-                  value={editNotes}
-                  onChange={e => setEditNotes(e.target.value)}
-                  placeholder="Descreva as observações clínicas desta sessão..."
-                  style={{ width: '100%', minHeight: '180px', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text-main)', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.7, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--color-border)' }}>
-              <button onClick={handleDelete} disabled={deleting} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.625rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-error)', backgroundColor: 'transparent', color: 'var(--color-error)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', fontFamily: 'inherit' }}>
-                <Trash2 size={16} /> {deleting ? 'Excluindo...' : 'Excluir'}
-              </button>
-              <button onClick={handleCloseModal} className="btn btn-secondary" style={{ flex: 1 }}>Cancelar</button>
-              <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ flex: 1 }}>
-                <Save size={16} /> {saving ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <AppointmentModal
+          appointment={selectedEvent}
+          onClose={handleCloseModal}
+          onSave={handleSaveModal}
+          onDelete={handleDeleteModal}
+        />
       )}
     </div>
   );

@@ -24,6 +24,11 @@ export default function LoginPage() {
       });
       
       localStorage.setItem('token', response.data.access_token);
+      
+      // Buscar dados do usuário para preencher o suporte depois
+      const userProfile = await api.get('/auth/me');
+      localStorage.setItem('user', JSON.stringify(userProfile.data));
+
       navigate('/dashboard');
     } catch (err) {
       setError('Email ou senha incorretos.');

@@ -178,3 +178,29 @@ def send_unblock_email(user_name: str, user_email: str):
   <a href="http://localhost:5173/login" style="display:inline-block;background:#10B981;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar o PsiCore →</a>
 </div>"""
     _send(user_email, "Seu acesso ao PsiCore foi reativado! 🎉", _base(content))
+
+
+def send_support_email(user_name: str, user_email: str, message: str):
+    admin_email = "dennis.w.garcia@gmail.com"
+    content = f"""
+<h2 style="margin:0 0 8px;font-size:22px;color:#0F172A;">Novo Chamado de Suporte 🆘</h2>
+<p style="color:#64748B;margin:0 0 24px;">O usuário <strong>{user_name}</strong> enviou uma nova mensagem.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:20px;margin-bottom:20px;">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:8px 0;border-bottom:1px solid #E2E8F0;">
+      <span style="font-size:12px;color:#64748B;font-weight:700;text-transform:uppercase;">Nome do Psicólogo</span><br>
+      <span style="font-size:16px;font-weight:600;color:#0F172A;">{user_name}</span>
+    </td></tr>
+    <tr><td style="padding:8px 0;border-bottom:1px solid #E2E8F0;">
+      <span style="font-size:12px;color:#64748B;font-weight:700;text-transform:uppercase;">E-mail</span><br>
+      <span style="font-size:16px;font-weight:600;color:#0F172A;">{user_email}</span>
+    </td></tr>
+    <tr><td style="padding:16px 0 0 0;">
+      <span style="font-size:12px;color:#64748B;font-weight:700;text-transform:uppercase;">Mensagem</span><br>
+      <p style="font-size:15px;color:#334155;line-height:1.6;margin:8px 0 0 0;white-space:pre-wrap;">{message}</p>
+    </td></tr>
+  </table>
+</td></tr>
+</table>"""
+    _send(admin_email, f"Suporte PsiCore - {user_name}", _base(content))

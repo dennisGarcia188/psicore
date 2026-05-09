@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Platform, Modal, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Calendar as CalendarIcon, Clock } from 'lucide-react-native';
+import { ChevronLeft, Calendar as CalendarIcon, Clock, User, ChevronDown, Search, X } from 'lucide-react-native';
 import api from '../api';
+
+const STATUS_COLOR = {
+  'Confirmada': '#10B981',
+  'Aguardando Confirmação': '#F59E0B',
+  'Cancelada': '#EF4444',
+  'Realizada': '#64748B',
+};
+
+const STATUS_OPTIONS = ['Confirmada', 'Aguardando Confirmação', 'Cancelada', 'Realizada'];
 
 export default function NewAppointment({ navigation }) {
   const [patients, setPatients] = useState([]);
@@ -12,9 +21,14 @@ export default function NewAppointment({ navigation }) {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [status, setStatus] = useState('Confirmada');
   
   const [loadingPatients, setLoadingPatients] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Modal de Pacientes
+  const [showPatientModal, setShowPatientModal] = useState(false);
+  const [searchPatient, setSearchPatient] = useState('');
 
   useEffect(() => {
     const loadPatients = async () => {
@@ -38,14 +52,13 @@ export default function NewAppointment({ navigation }) {
 
     setSaving(true);
     try {
-      // CORREÇÃO DO TIMEZONE: Garantir que enviaremos o horário LOCAL correto, ignorando o Z (UTC)
       const tzOffset = date.getTimezoneOffset() * 60000;
       const localISOTime = new Date(date.getTime() - tzOffset).toISOString().slice(0, -1);
       
       const payload = {
         patient_id: selectedPatientId,
         date_time: localISOTime,
-        status: 'Aguardando Confirmação'
+        status: status
       };
 
       await api.post('/appointments/', payload);
@@ -60,7 +73,7 @@ export default function NewAppointment({ navigation }) {
   };
 
   const onChangeDate = (event, selectedDate) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    if (Platform.OS === 'android') setShowDatePicker(false);
     if (selectedDate) {
       const newDate = new Date(date);
       newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
@@ -69,13 +82,16 @@ export default function NewAppointment({ navigation }) {
   };
 
   const onChangeTime = (event, selectedTime) => {
-    setShowTimePicker(Platform.OS === 'ios');
+    if (Platform.OS === 'android') setShowTimePicker(false);
     if (selectedTime) {
       const newDate = new Date(date);
       newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
       setDate(newDate);
     }
   };
+
+  const filteredPatients = patients.filter(p => p.name.toLowerCase().includes(searchPatient.toLowerCase()));
+  const selectedPatientName = patients.find(p => p.id === selectedPatientId)?.name;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -87,36 +103,24 @@ export default function NewAppointment({ navigation }) {
         <View style={{ width: 28 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.sectionTitle}>Paciente</Text>
         
-        {loadingPatients ? (
-          <ActivityIndicator color="#0284C7" style={{ margin: 20 }} />
-        ) : (
-          <View style={styles.patientList}>
-            {patients.map((p, index) => (
-              <TouchableOpacity 
-                key={p.id} 
-                style={[
-                  styles.patientItem, 
-                  selectedPatientId === p.id && styles.patientItemActive,
-                  index === patients.length - 1 && { borderBottomWidth: 0 }
-                ]}
-                onPress={() => setSelectedPatientId(p.id)}
-              >
-                <View style={[styles.radio, selectedPatientId === p.id && styles.radioActive]}>
-                  {selectedPatientId === p.id && <View style={styles.radioInner} />}
-                </View>
-                <Text style={[styles.patientName, selectedPatientId === p.id && styles.patientNameActive]}>
-                  {p.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            {patients.length === 0 && (
-              <Text style={{ color: '#64748B', padding: 16 }}>Nenhum paciente cadastrado.</Text>
-            )}
+        <TouchableOpacity 
+          style={styles.dropdownBtn}
+          onPress={() => setShowPatientModal(true)}
+          disabled={loadingPatients}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={[styles.iconBox, { backgroundColor: '#F0F9FF', width: 40, height: 40, marginRight: 12 }]}>
+              <User size={18} color="#0284C7" />
+            </View>
+            <Text style={[styles.dropdownText, !selectedPatientId && { color: '#94A3B8' }]}>
+              {loadingPatients ? 'Carregando...' : (selectedPatientName || 'Selecionar paciente...')}
+            </Text>
           </View>
-        )}
+          <ChevronDown size={20} color="#94A3B8" />
+        </TouchableOpacity>
 
         <Text style={styles.sectionTitle}>Data e Hora</Text>
         <View style={styles.datePickerContainer}>
@@ -143,23 +147,27 @@ export default function NewAppointment({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={onChangeDate}
-          />
-        )}
-        
-        {showTimePicker && (
-          <DateTimePicker
-            value={date}
-            mode="time"
-            display="default"
-            onChange={onChangeTime}
-          />
-        )}
+        <Text style={styles.sectionTitle}>Status</Text>
+        <View style={styles.statusGrid}>
+          {STATUS_OPTIONS.map(opt => (
+            <TouchableOpacity 
+              key={opt}
+              style={[
+                styles.statusOptionBtn, 
+                status === opt && { borderColor: STATUS_COLOR[opt], backgroundColor: STATUS_COLOR[opt] + '10' }
+              ]}
+              onPress={() => setStatus(opt)}
+            >
+              <Text style={[
+                styles.statusOptionText, 
+                status === opt && { color: STATUS_COLOR[opt], fontWeight: '800' }
+              ]}>
+                {opt}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
       </ScrollView>
 
       <View style={styles.footer}>
@@ -171,6 +179,79 @@ export default function NewAppointment({ navigation }) {
           <Text style={styles.saveBtnText}>{saving ? 'Salvando...' : 'Confirmar Agendamento'}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* DatePicker para Android e iOS */}
+      {Platform.OS === 'ios' ? (
+        <Modal visible={showDatePicker || showTimePicker} transparent animationType="slide">
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <View style={{ backgroundColor: '#FFF', paddingBottom: 20 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                <TouchableOpacity onPress={() => { setShowDatePicker(false); setShowTimePicker(false); }}>
+                  <Text style={{ color: '#0284C7', fontWeight: '800', fontSize: 16 }}>Concluído</Text>
+                </TouchableOpacity>
+              </View>
+              {showDatePicker && (
+                <DateTimePicker value={date} mode="date" display="inline" themeVariant="light" onChange={onChangeDate} />
+              )}
+              {showTimePicker && (
+                <DateTimePicker value={date} mode="time" display="spinner" themeVariant="light" onChange={onChangeTime} />
+              )}
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        <>
+          {showDatePicker && (
+            <DateTimePicker value={date} mode="date" display="default" onChange={onChangeDate} />
+          )}
+          {showTimePicker && (
+            <DateTimePicker value={date} mode="time" display="default" onChange={onChangeTime} />
+          )}
+        </>
+      )}
+
+      {/* Modal de Seleção de Paciente */}
+      <Modal visible={showPatientModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowPatientModal(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Selecionar Paciente</Text>
+            <TouchableOpacity onPress={() => setShowPatientModal(false)} style={styles.closeBtn}>
+              <X color="#0F172A" size={24} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.searchContainer}>
+            <Search color="#94A3B8" size={20} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar paciente..."
+              placeholderTextColor="#94A3B8"
+              value={searchPatient}
+              onChangeText={setSearchPatient}
+              autoFocus={Platform.OS === 'ios'}
+            />
+          </View>
+          <ScrollView style={{ flex: 1 }}>
+            {filteredPatients.map(p => (
+              <TouchableOpacity 
+                key={p.id}
+                style={[styles.patientItem, selectedPatientId === p.id && styles.patientItemActive]}
+                onPress={() => {
+                  setSelectedPatientId(p.id);
+                  setShowPatientModal(false);
+                }}
+              >
+                <View style={[styles.radio, selectedPatientId === p.id && styles.radioActive]}>
+                  {selectedPatientId === p.id && <View style={styles.radioInner} />}
+                </View>
+                <Text style={[styles.patientName, selectedPatientId === p.id && styles.patientNameActive]}>{p.name}</Text>
+              </TouchableOpacity>
+            ))}
+            {filteredPatients.length === 0 && (
+              <Text style={{ textAlign: 'center', marginTop: 40, color: '#94A3B8' }}>Nenhum paciente encontrado.</Text>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -189,42 +270,26 @@ const styles = StyleSheet.create({
   closeBtn: { padding: 4 },
   content: { flex: 1, padding: 16 },
   sectionTitle: { fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, marginTop: 8, marginLeft: 8 },
-  patientList: {
+  
+  dropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#F1F5F9',
-    overflow: 'hidden',
     marginBottom: 24,
     shadowColor: '#000',
     shadowOpacity: 0.03,
-    shadowRadius: 10,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
-  patientItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  patientItemActive: { backgroundColor: '#F8FAFC' },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#CBD5E1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  radioActive: { borderColor: '#0284C7' },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0284C7' },
-  patientName: { fontSize: 16, color: '#334155', fontWeight: '600' },
-  patientNameActive: { color: '#0F172A', fontWeight: '700' },
-  datePickerContainer: { gap: 12, marginBottom: 40 },
+  dropdownText: { fontSize: 16, color: '#0F172A', fontWeight: '600' },
+
+  datePickerContainer: { gap: 12, marginBottom: 32 },
   dateBtn: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -250,6 +315,19 @@ const styles = StyleSheet.create({
   },
   dateBtnLabel: { fontSize: 13, color: '#64748B', fontWeight: '600', marginBottom: 2 },
   dateBtnValue: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
+
+  statusGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 40 },
+  statusOptionBtn: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  statusOptionText: { fontSize: 14, fontWeight: '600', color: '#64748B', textAlign: 'center' },
+
   footer: {
     padding: 20,
     backgroundColor: '#FFFFFF',
@@ -268,4 +346,17 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.5, shadowOpacity: 0 },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+
+  // Modal Styles
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', margin: 16, paddingHorizontal: 16, borderRadius: 16, height: 50 },
+  searchInput: { flex: 1, marginLeft: 12, fontSize: 16, color: '#0F172A' },
+  patientItem: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFFFFF' },
+  patientItemActive: { backgroundColor: '#F8FAFC' },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#CBD5E1', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  radioActive: { borderColor: '#0284C7' },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0284C7' },
+  patientName: { fontSize: 16, color: '#334155', fontWeight: '600' },
+  patientNameActive: { color: '#0F172A', fontWeight: '700' },
 });

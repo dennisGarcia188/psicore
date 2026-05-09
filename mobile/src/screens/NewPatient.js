@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Calendar as CalendarIcon } from 'lucide-react-native';
+import { TextInputMask } from 'react-native-masked-text';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../api';
 
 export default function NewPatient({ navigation }) {
@@ -10,8 +12,9 @@ export default function NewPatient({ navigation }) {
     email: '',
     phone: '',
     cpf: '',
-    birth_date: ''
   });
+  const [birthDate, setBirthDate] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -22,7 +25,15 @@ export default function NewPatient({ navigation }) {
 
     setSaving(true);
     try {
-      await api.post('/patients/', formData);
+      const payload = { ...formData };
+      if (birthDate) {
+        // Envia apenas a data (YYYY-MM-DD)
+        payload.birth_date = birthDate.toISOString().split('T')[0];
+      } else {
+        payload.birth_date = null;
+      }
+
+      await api.post('/patients/', payload);
       Alert.alert('Sucesso', 'Paciente cadastrado com sucesso!');
       navigation.goBack();
     } catch (err) {
@@ -35,6 +46,13 @@ export default function NewPatient({ navigation }) {
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const onChangeDate = (event, selectedDate) => {
+    if (Platform.OS === 'android') setShowDatePicker(false);
+    if (selectedDate) {
+      setBirthDate(selectedDate);
+    }
   };
 
   return (
@@ -76,7 +94,13 @@ export default function NewPatient({ navigation }) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Telefone (WhatsApp)</Text>
-              <TextInput
+              <TextInputMask
+                type={'cel-phone'}
+                options={{
+                  maskType: 'BRL',
+                  withDDD: true,
+                  dddMask: '(99) '
+                }}
                 style={styles.input}
                 placeholder="(11) 99999-9999"
                 placeholderTextColor="#94A3B8"
@@ -88,7 +112,8 @@ export default function NewPatient({ navigation }) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>CPF</Text>
-              <TextInput
+              <TextInputMask
+                type={'cpf'}
                 style={styles.input}
                 placeholder="000.000.000-00"
                 placeholderTextColor="#94A3B8"
@@ -100,17 +125,53 @@ export default function NewPatient({ navigation }) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data de Nascimento</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="AAAA-MM-DD"
-                placeholderTextColor="#94A3B8"
-                value={formData.birth_date}
-                onChangeText={(v) => handleChange('birth_date', v)}
-              />
+              <TouchableOpacity 
+                style={[styles.input, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={{ color: birthDate ? '#0F172A' : '#94A3B8', fontSize: 16, fontWeight: '500' }}>
+                  {birthDate ? birthDate.toLocaleDateString('pt-BR') : 'Selecione a data'}
+                </Text>
+                <CalendarIcon size={20} color="#94A3B8" />
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {Platform.OS === 'ios' ? (
+        <Modal visible={showDatePicker} transparent animationType="slide">
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <View style={{ backgroundColor: '#FFF', paddingBottom: 20 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={{ color: '#0284C7', fontWeight: '800', fontSize: 16 }}>Concluído</Text>
+                </TouchableOpacity>
+              </View>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={birthDate || new Date()}
+                  mode="date"
+                  display="inline"
+                  themeVariant="light"
+                  maximumDate={new Date()}
+                  onChange={onChangeDate}
+                />
+              )}
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={birthDate || new Date()}
+            mode="date"
+            display="default"
+            maximumDate={new Date()}
+            onChange={onChangeDate}
+          />
+        )
+      )}
 
       <View style={styles.footer}>
         <TouchableOpacity 

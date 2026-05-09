@@ -42,7 +42,7 @@ def read_patient_appointments(patient_id: int, db: Session = Depends(get_db), cu
     return appointments
 
 @router.put("/{appointment_id}", response_model=schemas.Appointment)
-def update_appointment(appointment_id: int, appointment_update: schemas.AppointmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def update_appointment(appointment_id: int, appointment_update: schemas.AppointmentCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     verify_patient_owner(appointment_update.patient_id, db, current_user)
     
     db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()

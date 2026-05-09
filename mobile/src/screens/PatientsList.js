@@ -2,7 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Linking, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Phone, MessageCircle, Plus } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../api';
+import ScreenHeader from '../components/ScreenHeader';
 
 export default function PatientsList({ navigation }) {
   const [patients, setPatients] = useState([]);
@@ -41,7 +43,11 @@ export default function PatientsList({ navigation }) {
 
   const renderItem = ({ item }) => {
     return (
-      <View style={styles.card}>
+      <TouchableOpacity 
+        style={styles.card} 
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('PatientDetails', { patientId: item.id })}
+      >
         <View style={styles.avatarPlaceholder}>
           <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
         </View>
@@ -61,15 +67,13 @@ export default function PatientsList({ navigation }) {
             </>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Seus Pacientes</Text>
-      </View>
+      <ScreenHeader title="Pacientes" />
 
       {loading ? (
         <View style={styles.center}>
@@ -100,15 +104,6 @@ export default function PatientsList({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  headerTitle: { fontSize: 28, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: 16, paddingBottom: 100 },
   card: {
