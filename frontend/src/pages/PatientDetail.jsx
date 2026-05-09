@@ -107,7 +107,7 @@ export default function PatientDetail() {
 
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem' }}>
         <TabButton id="dados" label="Dados Pessoais" icon={User} />
-        <TabButton id="prontuario" label="Prontuário" icon={FileText} />
+        <TabButton id="prontuario" label="Histórico de Sessões" icon={Clock} />
         <TabButton id="financeiro" label="Financeiro" icon={DollarSign} />
       </div>
 
@@ -118,7 +118,7 @@ export default function PatientDetail() {
             <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Nome Completo</strong>{patient.name}</div>
             <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>CPF</strong>{patient.cpf || '-'}</div>
             <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>RG</strong>{patient.rg || '-'}</div>
-            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Data de Nascimento</strong>-</div>
+            <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Data de Nascimento</strong>{patient.birth_date ? new Date(patient.birth_date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</div>
             <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Profissão</strong>{patient.profession || '-'}</div>
             <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Estado Civil</strong>{patient.marital_status || '-'}</div>
             <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Endereço</strong>{patient.address || '-'}</div>
@@ -130,26 +130,43 @@ export default function PatientDetail() {
       {activeTab === 'prontuario' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Evolução Clínica</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Histórico Completo</h3>
             <button onClick={() => setShowNoteModal(true)} className="btn btn-primary">
-              <Plus size={20} /> Adicionar Evolução
+              <Plus size={20} /> Evolução Avulsa
             </button>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {appointments.filter(a => a.notes).length === 0 ? (
+            {appointments.length === 0 ? (
               <div style={{ backgroundColor: 'var(--color-surface)', padding: '3rem', textAlign: 'center', borderRadius: 'var(--radius-xl)', color: 'var(--color-text-muted)' }}>
-                Nenhuma anotação registrada ainda.
+                Nenhum histórico registrado para este paciente.
               </div>
             ) : (
-              appointments.filter(a => a.notes).map(appt => (
+              [...appointments].sort((a,b) => new Date(b.date_time) - new Date(a.date_time)).map(appt => (
                 <div key={appt.id} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', borderLeft: '4px solid var(--color-primary)' }}>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ fontSize: '1.125rem', color: 'var(--color-primary)' }}>{new Date(appt.date_time).toLocaleString()}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div>
+                      <strong style={{ fontSize: '1.125rem', color: 'var(--color-primary)' }}>{new Date(appt.date_time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <span className={`badge ${appt.status === 'Confirmada' ? 'badge-primary' : appt.status === 'Realizada' ? 'badge-success' : appt.status === 'Cancelada' ? 'badge-error' : 'badge-warning'}`}>{appt.status}</span>
+                        <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>{appt.is_paid ? 'Pago' : 'Pagamento Pendente'}</span>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <strong style={{ fontSize: '1.125rem', color: 'var(--color-text-main)' }}>R$ {appt.fee?.toFixed(2)}</strong>
+                    </div>
                   </div>
-                  <div style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text-main)', lineHeight: '1.6' }}>
-                    {appt.notes}
-                  </div>
+                  
+                  {appt.notes ? (
+                    <div style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text-main)', lineHeight: '1.6', backgroundColor: 'var(--color-background)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        <FileText size={14} /> Anotações da Sessão
+                      </div>
+                      {appt.notes}
+                    </div>
+                  ) : (
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0, padding: '0.5rem 0' }}>Sem anotações clínicas para esta consulta.</p>
+                  )}
                 </div>
               ))
             )}

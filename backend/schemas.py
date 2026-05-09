@@ -54,6 +54,7 @@ class PatientBase(BaseModel):
     profession: Optional[str] = None
     emergency_contact: Optional[str] = None
     marital_status: Optional[str] = None
+    birth_date: Optional[str] = None
 
 class PatientCreate(PatientBase):
     pass

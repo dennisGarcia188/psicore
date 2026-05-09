@@ -26,6 +26,7 @@ export default function AdminPanel() {
   const [showCreate, setShowCreate] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', crp: '', specialty: '' });
   const [creating, setCreating] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // { userId, isActive, action, msg }
   const navigate = useNavigate();
   const aApi = adminApi();
 
@@ -50,14 +51,26 @@ export default function AdminPanel() {
     }
   };
 
-  const handleBlock = async (userId, isActive) => {
-    const action = isActive ? 'block' : 'unblock';
-    const msg = isActive ? 'Bloquear este psicólogo? Ele receberá um e-mail.' : 'Reativar este psicólogo?';
-    if (!window.confirm(msg)) return;
+  const handleBlockClick = (userId, isActive) => {
+    setConfirmAction({
+      userId,
+      isActive,
+      action: isActive ? 'block' : 'unblock',
+      msg: isActive ? 'Bloquear este psicólogo? Ele perderá o acesso e receberá um e-mail de notificação.' : 'Reativar o acesso deste psicólogo?',
+    });
+  };
+
+  const confirmBlock = async () => {
+    if (!confirmAction) return;
     try {
-      await aApi.post(`/admin/users/${userId}/${action}`);
+      await aApi.post(`/admin/users/${confirmAction.userId}/${confirmAction.action}`, {});
       await fetchUsers();
-    } catch (err) { alert('Erro ao atualizar.'); }
+      setConfirmAction(null);
+    } catch (err) { 
+      console.error('Erro block:', err);
+      alert('Erro ao atualizar: ' + (err.response?.data?.detail || err.message)); 
+      setConfirmAction(null);
+    }
   };
 
   const handleSubscription = async (userId, status) => {
@@ -235,7 +248,7 @@ export default function AdminPanel() {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <button
-                      onClick={() => handleBlock(u.id, u.is_active)}
+                      onClick={() => handleBlockClick(u.id, u.is_active)}
                       style={{ backgroundColor: u.is_active ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', color: u.is_active ? '#EF4444' : '#10B981', border: 'none', padding: '0.4rem 0.875rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', fontFamily: 'inherit' }}
                     >
                       {u.is_active ? 'Bloquear' : 'Reativar'}
@@ -246,6 +259,25 @@ export default function AdminPanel() {
             </tbody>
           </table>
         </div>
+
+        {/* Modal de Confirmação Customizado */}
+        {confirmAction && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+            <div style={{ backgroundColor: '#1E293B', padding: '2rem', borderRadius: '16px', maxWidth: '400px', width: '90%', border: '1px solid #334155', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>Confirmar Ação</h3>
+              <p style={{ color: '#94A3B8', marginBottom: '2rem', lineHeight: '1.5' }}>{confirmAction.msg}</p>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button onClick={() => setConfirmAction(null)} style={{ background: 'transparent', border: '1px solid #334155', color: '#94A3B8', padding: '0.625rem 1.25rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}>
+                  Cancelar
+                </button>
+                <button onClick={confirmBlock} style={{ backgroundColor: confirmAction.isActive ? '#EF4444' : '#10B981', color: 'white', border: 'none', padding: '0.625rem 1.25rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit' }}>
+                  {confirmAction.isActive ? 'Sim, Bloquear' : 'Sim, Reativar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

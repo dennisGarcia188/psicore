@@ -10,7 +10,7 @@ export default function PatientsList() {
   const [showModal, setShowModal] = useState(false);
   const [newPatient, setNewPatient] = useState({ 
     name: '', email: '', phone: '', cpf: '', rg: '', 
-    address: '', profession: '', emergency_contact: '', marital_status: '' 
+    address: '', profession: '', emergency_contact: '', marital_status: '', birth_date: ''
   });
   const navigate = useNavigate();
 
@@ -37,7 +37,7 @@ export default function PatientsList() {
       
       await api.post('/patients/', payload);
       setShowModal(false);
-      setNewPatient({ name: '', email: '', phone: '', cpf: '', rg: '', address: '', profession: '', emergency_contact: '', marital_status: '' });
+      setNewPatient({ name: '', email: '', phone: '', cpf: '', rg: '', address: '', profession: '', emergency_contact: '', marital_status: '', birth_date: '' });
       fetchPatients();
     } catch (err) {
       console.error('Erro ao criar paciente', err.response?.data || err);
@@ -94,7 +94,11 @@ export default function PatientsList() {
             ) : (
               filteredPatients.map(patient => (
                 <tr key={patient.id}>
-                  <td style={{ fontWeight: 500 }}>{patient.name}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    <Link to={`/dashboard/patients/${patient.id}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
+                      {patient.name}
+                    </Link>
+                  </td>
                   <td>{patient.phone || '-'}</td>
                   <td>{patient.cpf || '-'}</td>
                   <td>
@@ -161,6 +165,10 @@ export default function PatientsList() {
                     <option value="Divorciado">Divorciado(a)</option>
                     <option value="Viúvo">Viúvo(a)</option>
                   </select>
+                </div>
+                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Data de Nascimento</label>
+                  <input type="date" className="input-control" value={newPatient.birth_date} onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})} />
                 </div>
               </div>
               

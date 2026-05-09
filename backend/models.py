@@ -53,6 +53,7 @@ class Patient(Base):
     profession = Column(String, nullable=True)
     emergency_contact = Column(String, nullable=True)
     marital_status = Column(String, nullable=True)
+    birth_date = Column(String, nullable=True)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="patients")

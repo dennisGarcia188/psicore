@@ -8,7 +8,7 @@ import datetime
 from database import get_db
 import models, schemas, utils
 from routers.auth import get_current_user
-from email_service import _send
+from email_service import send_block_email, send_unblock_email
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -83,16 +83,7 @@ def block_user(user_id: int, background_tasks: BackgroundTasks, db: Session = De
     db.refresh(user)
 
     # E-mail de notificação de bloqueio
-    html = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h2 style="color: #EF4444;">Acesso Suspenso — PsiCore</h2>
-      <p>Olá, <strong>{user.name}</strong>.</p>
-      <p>Informamos que o seu acesso ao <strong>PsiCore</strong> foi temporariamente <strong>suspenso</strong>.</p>
-      <p>Entre em contato com o suporte para mais informações e para regularizar sua situação.</p>
-      <p style="color: #64748B; font-size: 12px; margin-top: 32px;">© 2026 PsiCore.</p>
-    </div>
-    """
-    background_tasks.add_task(_send, user.email, "Seu acesso ao PsiCore foi suspenso", html)
+    background_tasks.add_task(send_block_email, user.name, user.email)
 
     count = db.query(models.Patient).filter(models.Patient.owner_id == user.id).count()
     return AdminUserView(**{**user.__dict__, "patient_count": count})
@@ -109,18 +100,7 @@ def unblock_user(user_id: int, background_tasks: BackgroundTasks, db: Session = 
     db.commit()
     db.refresh(user)
 
-    html = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h2 style="color: #10B981;">Acesso Reativado — PsiCore</h2>
-      <p>Olá, <strong>{user.name}</strong>!</p>
-      <p>Seu acesso ao <strong>PsiCore</strong> foi <strong>reativado</strong>. Você já pode entrar normalmente.</p>
-      <p style="margin-top: 24px;">
-        <a href="http://localhost:5174/login" style="background-color:#0284C7;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;">Acessar o PsiCore</a>
-      </p>
-      <p style="color: #64748B; font-size: 12px; margin-top: 32px;">© 2026 PsiCore.</p>
-    </div>
-    """
-    background_tasks.add_task(_send, user.email, "Seu acesso ao PsiCore foi reativado!", html)
+    background_tasks.add_task(send_unblock_email, user.name, user.email)
 
     count = db.query(models.Patient).filter(models.Patient.owner_id == user.id).count()
     return AdminUserView(**{**user.__dict__, "patient_count": count})

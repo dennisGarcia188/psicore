@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models, schemas
 from routers.auth import get_current_user
-from email_service import send_welcome_email
+from email_service import send_welcome_email, send_birthday_email
 
 router = APIRouter(
     prefix="/patients",
@@ -20,7 +20,7 @@ def create_patient(patient: schemas.PatientCreate, background_tasks: BackgroundT
     db.refresh(db_patient)
     
     # Enviar e-mail em background
-    background_tasks.add_task(send_welcome_email, db_patient.name, db_patient.email)
+    background_tasks.add_task(send_welcome_email, db_patient.name, db_patient.email, current_user.name)
     
     return db_patient
 
@@ -58,3 +58,14 @@ def delete_patient(patient_id: int, db: Session = Depends(get_db), current_user:
     db.delete(db_patient)
     db.commit()
     return None
+
+@router.post("/{patient_id}/birthday-email", status_code=status.HTTP_202_ACCEPTED)
+def trigger_birthday_email(patient_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    patient = db.query(models.Patient).filter(models.Patient.id == patient_id, models.Patient.owner_id == current_user.id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente não encontrado")
+    if not patient.email:
+        raise HTTPException(status_code=400, detail="Paciente não possui e-mail cadastrado")
+        
+    background_tasks.add_task(send_birthday_email, patient.name, patient.email, current_user.name)
+    return {"message": "E-mail de aniversário colocado na fila."}

@@ -5,7 +5,7 @@ from typing import List
 from database import get_db
 import models, schemas
 from routers.auth import get_current_user
-from email_service import send_appointment_email
+from email_service import send_appointment_email, send_cancellation_email
 
 router = APIRouter(
     prefix="/appointments",
@@ -31,7 +31,7 @@ def create_appointment(appointment: schemas.AppointmentCreate, background_tasks:
     db.refresh(db_appointment)
     
     # Enviar e-mail em background
-    background_tasks.add_task(send_appointment_email, patient.name, patient.email, str(db_appointment.date_time))
+    background_tasks.add_task(send_appointment_email, patient.name, patient.email, str(db_appointment.date_time), current_user.name)
     
     return db_appointment
 
@@ -57,10 +57,15 @@ def update_appointment(appointment_id: int, appointment_update: schemas.Appointm
         
     db.commit()
     db.refresh(db_appointment)
+    
+    if appointment_update.status == "Cancelada":
+        patient = db.query(models.Patient).filter(models.Patient.id == db_appointment.patient_id).first()
+        background_tasks.add_task(send_cancellation_email, patient.name, patient.email, str(db_appointment.date_time), current_user.name)
+        
     return db_appointment
 
 @router.patch("/{appointment_id}", response_model=schemas.Appointment)
-def patch_appointment(appointment_id: int, data: schemas.AppointmentPatch, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def patch_appointment(appointment_id: int, data: schemas.AppointmentPatch, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     """Atualiza parcialmente um agendamento (ex: só o status ou só a data)."""
     db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if not db_appointment:
@@ -73,6 +78,11 @@ def patch_appointment(appointment_id: int, data: schemas.AppointmentPatch, db: S
 
     db.commit()
     db.refresh(db_appointment)
+    
+    if data.status == "Cancelada":
+        patient = db.query(models.Patient).filter(models.Patient.id == db_appointment.patient_id).first()
+        background_tasks.add_task(send_cancellation_email, patient.name, patient.email, str(db_appointment.date_time), current_user.name)
+
     return db_appointment
 
 @router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
