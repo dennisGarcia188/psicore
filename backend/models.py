@@ -16,6 +16,12 @@ class SubscriptionStatus(str, enum.Enum):
     OVERDUE = "Inadimplente"
     CANCELED = "Cancelado"
 
+class ChargeStatus(str, enum.Enum):
+    PENDING = "Pendente"
+    PAID = "Pago"
+    OVERDUE = "Atrasado"
+    CANCELED = "Cancelado"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -33,12 +39,15 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     subscription_status = Column(String, default=SubscriptionStatus.TRIAL.value)
+    plan_price = Column(Float, default=0.0)
+    next_billing_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
 
     patients = relationship("Patient", back_populates="owner")
     templates = relationship("RecordTemplate", back_populates="owner")
     clinic_settings = relationship("ClinicSettings", back_populates="owner", uselist=False)
+    charges = relationship("Charge", back_populates="user")
 
 class Patient(Base):
     __tablename__ = "patients"
@@ -94,3 +103,16 @@ class ClinicSettings(Base):
 
     owner_id = Column(Integer, ForeignKey("users.id"), unique=True)
     owner = relationship("User", back_populates="clinic_settings")
+
+class Charge(Base):
+    __tablename__ = "charges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    amount = Column(Float)
+    due_date = Column(DateTime)
+    status = Column(String, default=ChargeStatus.PENDING.value)
+    paid_at = Column(DateTime, nullable=True)
+    reference_month = Column(String)  # Formato "AAAA-MM"
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="charges")

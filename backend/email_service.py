@@ -204,3 +204,31 @@ def send_support_email(user_name: str, user_email: str, message: str):
 </td></tr>
 </table>"""
     _send(admin_email, f"Suporte PsiCore - {user_name}", _base(content))
+
+
+def send_charge_email(user_name: str, user_email: str, amount: float, due_date: str, reference_month: str):
+    try:
+        dt = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+        date_fmt = dt.strftime("%d/%m/%Y")
+    except Exception:
+        date_fmt = due_date
+
+    content = f"""
+<h2 style="margin:0 0 8px;font-size:22px;color:#0F172A;">Nova Cobrança Gerada 🧾</h2>
+<p style="color:#64748B;margin:0 0 24px;">Olá, <strong>{user_name}</strong>. Uma nova cobrança referente ao mês de <strong>{reference_month}</strong> foi gerada.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;padding:20px;margin-bottom:20px;">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:8px 0;border-bottom:1px solid #E0F2FE;">
+      <span style="font-size:12px;color:#64748B;font-weight:700;text-transform:uppercase;">💰 Valor</span><br>
+      <span style="font-size:20px;font-weight:700;color:#0F172A;">R$ {amount:.2f}</span>
+    </td></tr>
+    <tr><td style="padding:8px 0;">
+      <span style="font-size:12px;color:#64748B;font-weight:700;text-transform:uppercase;">📅 Vencimento</span><br>
+      <span style="font-size:20px;font-weight:700;color:#0F172A;">{date_fmt}</span>
+    </td></tr>
+  </table>
+</td></tr>
+</table>
+<p style="font-size:14px;color:#475569;margin:0;">Por favor, realize o pagamento para garantir a continuidade do seu acesso ao sistema.</p>"""
+    _send(user_email, f"Nova cobrança PsiCore - {reference_month}", _base(content))
