@@ -7,7 +7,7 @@ from database import engine, Base
 from routers import auth, patients, appointments, templates, settings, admin
 
 # Cria as tabelas no banco de dados (pode ser substituído pelo Alembic no futuro, mas útil para o início)
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Gestão para Psicólogos")
 
@@ -17,6 +17,7 @@ origins = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
+    "https://psicore.vercel.app",
 ]
 
 app.add_middleware(
