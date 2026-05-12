@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 load_dotenv()  # Carrega as variáveis do arquivo .env antes de qualquer import
 
@@ -13,12 +14,16 @@ app = FastAPI(title="API Gestão para Psicólogos")
 
 # Configuração de CORS
 origins = [
-    "http://localhost",
     "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
+    "https://psicore.app.br",
+    "https://www.psicore.app.br",
     "https://psicore.vercel.app",
 ]
+
+# Permite adicionar mais origens via variável de ambiente (separadas por vírgula)
+env_origins = os.getenv("CORS_ORIGINS")
+if env_origins:
+    origins.extend([o.strip() for o in env_origins.split(",")])
 
 app.add_middleware(
     CORSMiddleware,

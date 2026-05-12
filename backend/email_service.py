@@ -7,7 +7,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("EmailService")
 
 resend.api_key = os.getenv("RESEND_API_KEY", "")
-EMAIL_FROM = os.getenv("EMAIL_FROM", "PsiCore <onboarding@resend.dev>")
+EMAIL_FROM = os.getenv("EMAIL_FROM", "PsiCore <nao-responda@psicore.app.br>")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://www.psicore.app.br")
 
 YEAR = datetime.now().year
 
@@ -74,7 +75,7 @@ def send_welcome_email(patient_name=None, patient_email=None, psychologist_name=
 </td></tr>
 </table>
 <div style="text-align:center;">
-  <a href="http://localhost:5173/login" style="display:inline-block;background:#0284C7;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar minha conta →</a>
+  <a href="{FRONTEND_URL}/login" style="display:inline-block;background:#0284C7;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar minha conta →</a>
 </div>"""
         _send(psychologist_email, f"Bem-vindo ao PsiCore, {psychologist_name}!", _base(content))
 
@@ -186,7 +187,7 @@ def send_unblock_email(user_name: str, user_email: str):
 <h2 style="margin:0 0 8px;font-size:22px;color:#10B981;">Acesso Reativado! ✅</h2>
 <p style="color:#64748B;margin:0 0 24px;">Olá, <strong>{user_name}</strong>! Seu acesso ao PsiCore foi <strong style="color:#10B981;">reativado</strong>.</p>
 <div style="text-align:center;">
-  <a href="http://localhost:5173/login" style="display:inline-block;background:#10B981;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar o PsiCore →</a>
+  <a href="{FRONTEND_URL}/login" style="display:inline-block;background:#10B981;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar o PsiCore →</a>
 </div>"""
     _send(user_email, "Seu acesso ao PsiCore foi reativado! 🎉", _base(content))
 
