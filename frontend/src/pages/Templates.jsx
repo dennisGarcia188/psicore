@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
 import api from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function Templates() {
   const [templates, setTemplates] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ title: '', type: 'Atestado', content: '' });
+  const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -16,11 +18,14 @@ export default function Templates() {
   }, []);
 
   const fetchTemplates = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/templates/');
       setTemplates(response.data);
     } catch (err) {
       console.error('Erro ao buscar templates', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,6 +52,8 @@ export default function Templates() {
       }
     }
   };
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in">

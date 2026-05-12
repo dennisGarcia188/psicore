@@ -3,6 +3,7 @@ import { BarChart2, DollarSign, Calendar, FileText, Download, Filter } from 'luc
 import { format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isWithinInterval, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import api from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 const TABS = [
   { key: 'financial', label: 'Financeiro', icon: DollarSign },
@@ -53,15 +54,14 @@ export default function Reports() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const pRes = await api.get('/patients/');
-      let appts = [];
-      for (let p of pRes.data) {
-        const aRes = await api.get(`/appointments/patient/${p.id}`);
-        appts = [...appts, ...aRes.data.map(a => ({ ...a, patient_name: p.name }))];
-      }
-      setAllAppts(appts.sort((a, b) => new Date(b.date_time) - new Date(a.date_time)));
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      // Optimized fetching
+      const response = await api.get('/appointments/');
+      setAllAppts(response.data.sort((a, b) => new Date(b.date_time) - new Date(a.date_time)));
+    } catch (err) { 
+      console.error(err); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   // ── Dados Financeiro ───────────────────────────────────────────────────────
@@ -156,7 +156,7 @@ export default function Reports() {
         ))}
       </div>
 
-      {loading && <p style={{ color: 'var(--color-text-muted)', padding: '2rem' }}>Carregando dados...</p>}
+      {loading && <LoadingScreen />}
 
       {/* ── TAB: FINANCEIRO ─────────────────────────────────────────────────── */}
       {!loading && tab === 'financial' && card(<>

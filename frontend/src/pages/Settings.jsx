@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Save, CheckCircle, User, Building2 } from 'lucide-react';
 import { maskPhone } from '../utils/masks';
 import api from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function SettingsPage() {
   const [form, setForm] = useState({
@@ -9,10 +10,12 @@ export default function SettingsPage() {
     clinic_name: '', clinic_cnpj: '', clinic_address: '', clinic_phone: '',
   });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
+      setInitialLoading(true);
       try {
         const userRes = await api.get('/auth/me');
         const u = userRes.data;
@@ -37,6 +40,8 @@ export default function SettingsPage() {
         });
       } catch (err) {
         console.error('Erro ao carregar perfil', err);
+      } finally {
+        setInitialLoading(false);
       }
     };
     fetchProfile();
@@ -65,6 +70,8 @@ export default function SettingsPage() {
       <p style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-primary)' }}>{title}</p>
     </div>
   );
+
+  if (initialLoading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', justifyContent: 'center' }}>

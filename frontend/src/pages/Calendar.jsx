@@ -10,6 +10,7 @@ import { Plus, X, CalendarClock, CalendarPlus, Users } from 'lucide-react';
 import api from '../api';
 import DateTimePicker from '../components/DateTimePicker';
 import AppointmentModal from '../components/AppointmentModal';
+import LoadingScreen from '../components/LoadingScreen';
 
 const locales = { 'pt-BR': ptBR };
 
@@ -31,6 +32,7 @@ const STATUS_COLORS = {
 export default function CalendarView() {
   const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [currentView, setCurrentView] = useState(window.innerWidth <= 768 ? Views.DAY : Views.WEEK);
 
@@ -63,8 +65,17 @@ export default function CalendarView() {
   const [newError, setNewError] = useState('');
 
   const fetchData = async () => {
-    await fetchAllAppointments();
-    await fetchPatients();
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchAllAppointments(),
+        fetchPatients()
+      ]);
+    } catch (err) {
+      console.error('Erro ao buscar dados da agenda', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchPatients = async () => {
@@ -78,25 +89,20 @@ export default function CalendarView() {
 
   const fetchAllAppointments = async () => {
     try {
-      const pRes = await api.get('/patients/');
-      const pts = pRes.data;
-      let allAppts = [];
-      for (let p of pts) {
-        const aRes = await api.get(`/appointments/patient/${p.id}`);
-        const mapped = aRes.data.map(a => {
-          const startDate = new Date(a.date_time);
-          const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-          return {
-            id: a.id,
-            title: p.name,
-            start: startDate,
-            end: endDate,
-            resource: { ...a, patient_name: p.name },
-          };
-        });
-        allAppts = [...allAppts, ...mapped];
-      }
-      setEvents(allAppts);
+      // Optimized fetching
+      const res = await api.get('/appointments/');
+      const mapped = res.data.map(a => {
+        const startDate = new Date(a.date_time);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        return {
+          id: a.id,
+          title: a.patient_name,
+          start: startDate,
+          end: endDate,
+          resource: { ...a },
+        };
+      });
+      setEvents(mapped);
     } catch (err) {
       console.error('Erro ao buscar agenda', err);
     }
@@ -184,6 +190,8 @@ export default function CalendarView() {
     noEventsInRange: 'Nenhum agendamento neste período.',
     showMore: total => `+ ${total} mais`,
   };
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in" style={{ height: isMobile ? '700px' : 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>

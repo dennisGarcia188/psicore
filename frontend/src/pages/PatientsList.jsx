@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, User, Phone, Mail, ChevronRight } from 'lucide-react';
 import { maskCPF, maskPhone, maskRG } from '../utils/masks';
 import api from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function PatientsList() {
   const [patients, setPatients] = useState([]);
@@ -12,6 +13,7 @@ export default function PatientsList() {
     name: '', email: '', phone: '', cpf: '', rg: '', 
     address: '', profession: '', emergency_contact: '', marital_status: '', birth_date: ''
   });
+  const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
 
@@ -23,11 +25,14 @@ export default function PatientsList() {
   }, []);
 
   const fetchPatients = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/patients/');
       setPatients(response.data);
     } catch (err) {
       console.error('Erro ao buscar pacientes', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -131,6 +136,7 @@ export default function PatientsList() {
       </div>
     </div>
   );
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in">

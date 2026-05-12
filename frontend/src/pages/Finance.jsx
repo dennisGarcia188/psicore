@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { DollarSign, CheckCircle, Clock } from 'lucide-react';
 import api from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function Finance() {
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({ total: 0, paid: 0, pending: 0 });
+  const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -15,24 +17,18 @@ export default function Finance() {
   }, []);
 
   const fetchFinances = async () => {
+    setLoading(true);
     try {
-      const pRes = await api.get('/patients/');
-      const pts = pRes.data;
-      
-      let allAppts = [];
-      for (let p of pts) {
-        const aRes = await api.get(`/appointments/patient/${p.id}`);
-        const withPatient = aRes.data.map(a => ({ ...a, patient_name: p.name }));
-        allAppts = [...allAppts, ...withPatient];
-      }
+      // Optimized fetching
+      const response = await api.get('/appointments/');
+      const allAppts = response.data;
 
-      allAppts.sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
-      
       let total = 0, paid = 0, pending = 0;
       allAppts.forEach(a => {
-        total += a.fee;
-        if (a.is_paid) paid += a.fee;
-        else pending += a.fee;
+        const fee = a.fee || 0;
+        total += fee;
+        if (a.is_paid) paid += fee;
+        else pending += fee;
       });
 
       setStats({ total, paid, pending });
@@ -40,6 +36,8 @@ export default function Finance() {
 
     } catch (err) {
       console.error('Erro ao buscar finanças', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,6 +56,8 @@ export default function Finance() {
       <h3 style={{ fontSize: '2rem', fontWeight: 800, color }}>R$ {value.toFixed(2)}</h3>
     </div>
   );
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in">
