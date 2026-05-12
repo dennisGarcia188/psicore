@@ -31,7 +31,21 @@ const STATUS_COLORS = {
 export default function CalendarView() {
   const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState(Views.WEEK);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [currentView, setCurrentView] = useState(window.innerWidth <= 768 ? Views.DAY : Views.WEEK);
+
+  useEffect(() => {
+    fetchData();
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile && currentView === Views.WEEK) {
+        setCurrentView(Views.DAY);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentView]);
 
   // Modal de detalhes do agendamento
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -47,10 +61,6 @@ export default function CalendarView() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [newError, setNewError] = useState('');
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     await fetchAllAppointments();
@@ -176,10 +186,10 @@ export default function CalendarView() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ height: 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Minha Agenda</h2>
-        <button onClick={openNewModal} className="btn btn-primary">
+    <div className="animate-fade-in" style={{ height: isMobile ? '700px' : 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Minha Agenda</h2>
+        <button onClick={openNewModal} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Plus size={18} /> Novo Agendamento
         </button>
       </div>
@@ -257,7 +267,7 @@ export default function CalendarView() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
                 <div className="input-group">
                   <label>Status</label>
                   <select
@@ -281,7 +291,7 @@ export default function CalendarView() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid var(--color-border)' }}>
                 <button type="button" onClick={() => setShowNewModal(false)} className="btn btn-secondary" style={{ flex: 1 }}>
                   Cancelar
                 </button>

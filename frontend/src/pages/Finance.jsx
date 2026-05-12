@@ -5,9 +5,13 @@ import api from '../api';
 export default function Finance() {
   const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({ total: 0, paid: 0, pending: 0 });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     fetchFinances();
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const fetchFinances = async () => {
@@ -58,14 +62,14 @@ export default function Finance() {
   return (
     <div className="animate-fade-in">
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <DollarSign size={32} color="var(--color-primary)" />
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Controle Financeiro</h2>
+        <DollarSign size={isMobile ? 24 : 32} color="var(--color-primary)" />
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Controle Financeiro</h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        <StatBox title="Faturamento Total" value={stats.total} color="var(--color-primary)" />
-        <StatBox title="Recebido (Pago)" value={stats.paid} color="var(--color-success)" />
-        <StatBox title="A Receber (Pendente)" value={stats.pending} color="var(--color-warning)" />
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <StatBox title={isMobile ? "Total" : "Faturamento Total"} value={stats.total} color="var(--color-primary)" />
+        <StatBox title={isMobile ? "Pago" : "Recebido (Pago)"} value={stats.paid} color="var(--color-success)" />
+        <StatBox title={isMobile ? "Pendente" : "A Receber (Pendente)"} value={stats.pending} color="var(--color-warning)" />
       </div>
 
       <div className="table-container">

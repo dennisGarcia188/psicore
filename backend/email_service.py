@@ -40,11 +40,22 @@ def _send(to: str, subject: str, html: str):
         return
     if not to:
         return
+
+    # Alerta sobre o domínio de teste do Resend
+    if "onboarding@resend.dev" in EMAIL_FROM:
+        logger.warning("⚠️ ATENÇÃO: Usando 'onboarding@resend.dev'. E-mails só serão entregues para o dono da conta Resend.")
+    
     try:
         response = resend.Emails.send({"from": EMAIL_FROM, "to": [to], "subject": subject, "html": html})
-        logger.info(f"E-mail enviado! ID: {response['id']} → {to}")
+        # Verifica se a resposta é um dicionário e tem 'id'
+        if isinstance(response, dict) and "id" in response:
+            logger.info(f"✅ E-mail enviado com sucesso! ID: {response['id']} → Destinatário: {to}")
+        else:
+            logger.error(f"❌ Resend retornou algo inesperado. Resposta: {response}")
     except Exception as e:
-        logger.error(f"Erro ao enviar para {to}: {e}")
+        logger.error(f"❌ Erro crítico ao enviar e-mail para {to}: {str(e)}")
+        if "403" in str(e) or "unauthorized" in str(e).lower():
+            logger.error("DICA: Verifique se sua API KEY está correta e se o domínio do remetente está verificado no Resend.")
 
 
 def send_welcome_email(patient_name=None, patient_email=None, psychologist_name=None, psychologist_email=None):

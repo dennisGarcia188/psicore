@@ -28,6 +28,13 @@ export default function AppointmentModal({
   const [activeTab, setActiveTab] = useState('dados');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fallback property access because Calendar uses 'resource' while Home uses direct properties
   const patientName = appointment.resource?.patient_name || appointment.patient_name;
@@ -71,18 +78,20 @@ export default function AppointmentModal({
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem', flexShrink: 0 }}>
-            {patientName?.[0] || '?'}
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '0.75rem', padding: '1rem', backgroundColor: 'var(--color-background)', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem', flexShrink: 0 }}>
+              {patientName?.[0] || '?'}
+            </div>
+            <div>
+              <p style={{ fontWeight: 700 }}>{patientName}</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                {fmt(new Date(startTime), isMobile ? "dd/MM/yy 'às' HH:mm" : "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+              </p>
+            </div>
           </div>
-          <div>
-            <p style={{ fontWeight: 700 }}>{patientName}</p>
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-              {fmt(new Date(startTime), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
-            </p>
-          </div>
-          <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: `${STATUS_COLORS[currentStatus]}20`, color: STATUS_COLORS[currentStatus] }}>
-            {currentStatus}
+          <span style={{ marginLeft: isMobile ? 0 : 'auto', marginTop: isMobile ? '0.5rem' : 0, fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', borderRadius: '99px', backgroundColor: `${STATUS_COLORS[editStatus]}20`, color: STATUS_COLORS[editStatus] }}>
+            {editStatus}
           </span>
         </div>
 
@@ -116,7 +125,7 @@ export default function AppointmentModal({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
               <div className="input-group" style={{ marginBottom: 0 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <DollarSign size={15} color="var(--color-primary)" /> Valor (R$)
@@ -135,7 +144,7 @@ export default function AppointmentModal({
                 />
               </div>
               <div className="input-group" style={{ marginBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: '1.25rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: isMobile ? 0 : '1.25rem' }}>
                   <input
                     type="checkbox"
                     checked={editIsPaid}
@@ -165,13 +174,15 @@ export default function AppointmentModal({
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--color-border)' }}>
-          <button onClick={handleDeleteClick} disabled={deleting} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.625rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-error)', backgroundColor: 'transparent', color: 'var(--color-error)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', fontFamily: 'inherit' }}>
-            <Trash2 size={16} /> {deleting ? 'Excluindo...' : 'Excluir'}
-          </button>
-          <button onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>Cancelar</button>
-          <button onClick={handleSaveClick} disabled={saving} className="btn btn-primary" style={{ flex: 1 }}>
-            <Save size={16} /> {saving ? 'Salvando...' : 'Salvar'}
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flex: 1 }}>
+            <button onClick={handleDeleteClick} disabled={deleting} style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.625rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-error)', backgroundColor: 'transparent', color: 'var(--color-error)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', fontFamily: 'inherit' }}>
+              <Trash2 size={16} /> {deleting ? '...' : 'Excluir'}
+            </button>
+            <button onClick={onClose} className="btn btn-secondary" style={{ flex: 1 }}>Cancelar</button>
+          </div>
+          <button onClick={handleSaveClick} disabled={saving} className="btn btn-primary" style={{ flex: isMobile ? 'none' : 1, width: isMobile ? '100%' : 'auto' }}>
+            <Save size={16} /> {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       </div>

@@ -19,6 +19,14 @@ export default function Home() {
   const [patients, setPatients] = useState([]);
   const [viewMode, setViewMode] = useState('today'); // 'today' | 'week'
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    fetchData();
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -182,13 +190,13 @@ export default function Home() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Visão Geral</h2>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <Link to="/dashboard/patients" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Visão Geral</h2>
+        <div style={{ display: 'flex', gap: '0.75rem', width: isMobile ? '100%' : 'auto' }}>
+          <Link to="/dashboard/patients" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: isMobile ? 1 : 'none', padding: isMobile ? '0.625rem 0.5rem' : '0.625rem 1.25rem', fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
             <Plus size={16} /> Novo Paciente
           </Link>
-          <Link to="/dashboard/calendar" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Link to="/dashboard/calendar" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: isMobile ? 1 : 'none', padding: isMobile ? '0.625rem 0.5rem' : '0.625rem 1.25rem', fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
             <CalendarPlus size={16} /> Nova Consulta
           </Link>
         </div>
@@ -198,25 +206,25 @@ export default function Home() {
       {birthdaysToday.length > 0 && (
         <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {birthdaysToday.map(p => (
-            <div key={p.id} style={{ backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid #10B981', borderRadius: 'var(--radius-xl)', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={p.id} style={{ backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid #10B981', borderRadius: 'var(--radius-xl)', padding: '1.5rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span style={{ fontSize: '2.5rem' }}>🎉</span>
+                <span style={{ fontSize: isMobile ? '2rem' : '2.5rem' }}>🎉</span>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#065F46', margin: 0 }}>Hoje é aniversário de {p.name}!</h3>
+                  <h3 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: 700, color: '#065F46', margin: 0 }}>Hoje é aniversário de {p.name}!</h3>
                   <p style={{ color: '#047857', fontSize: '0.875rem', margin: '0.25rem 0 0', fontWeight: 500 }}>Aproveite para desejar muitas felicitações.</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', width: isMobile ? '100%' : 'auto' }}>
                 <button 
                   onClick={() => sendBirthdayEmail(p.id)} 
                   disabled={sendingEmailId === p.id}
                   className="btn btn-secondary" 
-                  style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: sendingEmailId === p.id ? 0.7 : 1 }}
+                  style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: sendingEmailId === p.id ? 0.7 : 1, flex: isMobile ? 1 : 'none', padding: isMobile ? '0.5rem' : '0.625rem 1.25rem', fontSize: isMobile ? '0.75rem' : '0.875rem' }}
                 >
-                  <Mail size={16} /> {sendingEmailId === p.id ? 'Enviando...' : 'Enviar E-mail'}
+                  <Mail size={16} /> {sendingEmailId === p.id ? 'Enviando...' : 'E-mail'}
                 </button>
                 {p.phone && (
-                  <a href={`https://wa.me/55${p.phone.replace(/\D/g, '')}?text=Olá ${p.name.split(' ')[0]}, feliz aniversário! 🎉 A equipe da PsiCore te deseja um dia maravilhoso!`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ backgroundColor: '#25D366', borderColor: '#25D366', color: 'white', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+                  <a href={`https://wa.me/55${p.phone.replace(/\D/g, '')}?text=Olá ${p.name.split(' ')[0]}, feliz aniversário! 🎉 A equipe da PsiCore te deseja um dia maravilhoso!`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ backgroundColor: '#25D366', borderColor: '#25D366', color: 'white', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', flex: isMobile ? 1 : 'none', padding: isMobile ? '0.5rem' : '0.625rem 1.25rem', fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
                     <MessageCircle size={16} /> WhatsApp
                   </a>
                 )}
@@ -227,35 +235,35 @@ export default function Home() {
       )}
 
       {/* Cards de Estatísticas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
         {[
-          { title: 'Consultas Confirmadas', value: stats.confirmed, icon: CheckCircle, color: 'var(--color-success)', bg: 'rgba(16,185,129,0.1)' },
-          { title: 'Aguardando Confirmação', value: stats.pending, icon: Clock, color: 'var(--color-warning)', bg: 'rgba(245,158,11,0.1)' },
-          { title: 'Total de Pacientes', value: stats.totalPatients, icon: Users, color: 'var(--color-primary)', bg: 'rgba(2,132,199,0.1)' },
+          { title: isMobile ? 'Confirmadas' : 'Consultas Confirmadas', value: stats.confirmed, icon: CheckCircle, color: 'var(--color-success)', bg: 'rgba(16,185,129,0.1)' },
+          { title: isMobile ? 'Pendentes' : 'Aguardando Confirmação', value: stats.pending, icon: Clock, color: 'var(--color-warning)', bg: 'rgba(245,158,11,0.1)' },
+          { title: isMobile ? 'Pacientes' : 'Total de Pacientes', value: stats.totalPatients, icon: Users, color: 'var(--color-primary)', bg: 'rgba(2,132,199,0.1)' },
         ].map(({ title, value, icon: Icon, color, bg }) => (
-          <div key={title} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Icon color={color} size={28} />
+          <div key={title} style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1.25rem' : '1.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: isMobile ? '1rem' : '1.5rem' }}>
+            <div style={{ width: isMobile ? '48px' : '56px', height: isMobile ? '48px' : '56px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon color={color} size={isMobile ? 24 : 28} />
             </div>
             <div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{title}</p>
-              <h3 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>{value}</h3>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{title}</p>
+              <h3 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>{value}</h3>
             </div>
           </div>
         ))}
       </div>
 
       {/* Header da Seção de Consultas */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h3 style={{ fontWeight: 700, fontSize: '1.25rem', margin: 0 }}>Consultas Próximas</h3>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+          <h3 style={{ fontWeight: 700, fontSize: isMobile ? '1.15rem' : '1.25rem', margin: 0 }}>Próximas</h3>
           <div style={{ display: 'flex', backgroundColor: 'var(--color-border)', borderRadius: '99px', padding: '3px', gap: '2px' }}>
             {[{ key: 'today', label: 'Hoje' }, { key: 'week', label: 'Semana' }].map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setViewMode(key)}
                 style={{
-                  padding: '0.4rem 1.25rem', borderRadius: '99px', border: 'none', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                  padding: isMobile ? '0.3rem 0.8rem' : '0.4rem 1.25rem', borderRadius: '99px', border: 'none', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 600, cursor: 'pointer',
                   backgroundColor: viewMode === key ? 'var(--color-surface)' : 'transparent',
                   color: viewMode === key ? 'var(--color-primary)' : 'var(--color-text-muted)',
                   boxShadow: viewMode === key ? 'var(--shadow-sm)' : 'none',
@@ -267,7 +275,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <Link to="/dashboard/calendar" style={{ color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <Link to="/dashboard/calendar" style={{ color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', alignSelf: isMobile ? 'flex-end' : 'center' }}>
           Agenda completa <ChevronRight size={18} />
         </Link>
       </div>
@@ -282,7 +290,7 @@ export default function Home() {
           </Link>
         </div>
       ) : viewMode === 'today' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
           {filtered.map(appt => (
             <AppointmentCard key={appt.id} appt={appt} />
           ))}
@@ -300,7 +308,7 @@ export default function Home() {
                   {appts.length}
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 {appts.map(appt => (
                   <AppointmentCard key={appt.id} appt={appt} />
                 ))}

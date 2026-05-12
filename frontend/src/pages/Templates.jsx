@@ -6,9 +6,13 @@ export default function Templates() {
   const [templates, setTemplates] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ title: '', type: 'Atestado', content: '' });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     fetchTemplates();
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const fetchTemplates = async () => {
@@ -46,14 +50,14 @@ export default function Templates() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Modelos de Prontuário</h2>
-        <button onClick={() => setShowModal(true)} className="btn btn-primary">
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Modelos de Prontuário</h2>
+        <button onClick={() => setShowModal(true)} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Plus size={20} /> Novo Modelo
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
         {templates.length === 0 ? (
           <p style={{ color: 'var(--color-text-muted)' }}>Nenhum modelo cadastrado. Crie um atestado, prescrição ou plano de tratamento para reaproveitar.</p>
         ) : (

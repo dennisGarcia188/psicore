@@ -27,6 +27,14 @@ export default function Reports() {
   const [tab, setTab] = useState('financial');
   const [allAppts, setAllAppts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    fetchAll();
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filtros Financeiro
   const [finMonth, setFinMonth] = useState(format(new Date(), 'yyyy-MM'));
@@ -140,9 +148,9 @@ export default function Reports() {
       <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.75rem' }}>Relatórios</h2>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', backgroundColor: 'var(--color-surface)', padding: '0.375rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', width: 'fit-content' }}>
+      <div className="hide-scrollbar" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', backgroundColor: 'var(--color-surface)', padding: '0.375rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', width: isMobile ? '100%' : 'fit-content', overflowX: isMobile ? 'auto' : 'visible' }}>
         {TABS.map(({ key, label, icon: Icon }) => (
-          <button key={key} onClick={() => setTab(key)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.125rem', borderRadius: 'var(--radius-lg)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.15s', backgroundColor: tab === key ? 'var(--color-primary)' : 'transparent', color: tab === key ? 'white' : 'var(--color-text-muted)' }}>
+          <button key={key} onClick={() => setTab(key)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.125rem', borderRadius: 'var(--radius-lg)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 600, transition: 'all 0.15s', backgroundColor: tab === key ? 'var(--color-primary)' : 'transparent', color: tab === key ? 'white' : 'var(--color-text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
             <Icon size={15} /> {label}
           </button>
         ))}
@@ -165,36 +173,38 @@ export default function Reports() {
         </>)}
 
         {/* Totalizadores */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', backgroundColor: 'var(--color-border)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1px', backgroundColor: 'var(--color-border)' }}>
           {[
             { label: 'Total Faturado', value: finTotals.total, color: 'var(--color-primary)' },
             { label: 'Recebido', value: finTotals.received, color: 'var(--color-success)' },
             { label: 'Pendente', value: finTotals.pending, color: 'var(--color-warning)' },
           ].map(({ label, value, color }) => (
-            <div key={label} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', textAlign: 'center' }}>
+            <div key={label} style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1rem' : '1.5rem', textAlign: 'center' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>{label}</p>
-              <p style={{ fontSize: '1.75rem', fontWeight: 800, color }}>{`R$ ${value.toFixed(2).replace('.', ',')}`}</p>
+              <p style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 800, color }}>{`R$ ${value.toFixed(2).replace('.', ',')}`}</p>
             </div>
           ))}
         </div>
 
         {/* Tabela */}
-        <table className="table">
-          <thead><tr><th>Paciente</th><th>Data</th><th>Valor</th><th>Pagamento</th><th>Status</th></tr></thead>
-          <tbody>
-            {finData.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro encontrado.</td></tr>
-            ) : finData.map(a => (
-              <tr key={a.id}>
-                <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
-                <td>{format(new Date(a.date_time), 'dd/MM/yyyy HH:mm')}</td>
-                <td style={{ fontWeight: 600 }}>R$ {a.fee?.toFixed(2)}</td>
-                <td><span className={`badge ${a.is_paid ? 'badge-success' : 'badge-warning'}`}>{a.is_paid ? 'Pago' : 'Pendente'}</span></td>
-                <td><span style={{ fontSize: '0.75rem', fontWeight: 600, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-container">
+          <table className="table">
+            <thead><tr><th>Paciente</th><th>Data</th><th>Valor</th><th>Pagamento</th><th>Status</th></tr></thead>
+            <tbody>
+              {finData.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro encontrado.</td></tr>
+              ) : finData.map(a => (
+                <tr key={a.id}>
+                  <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{format(new Date(a.date_time), 'dd/MM/yy HH:mm')}</td>
+                  <td style={{ fontWeight: 600 }}>R$ {a.fee?.toFixed(2)}</td>
+                  <td><span className={`badge ${a.is_paid ? 'badge-success' : 'badge-warning'}`}>{a.is_paid ? 'Pago' : 'Pendente'}</span></td>
+                  <td><span style={{ fontSize: '0.75rem', fontWeight: 600, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </>)}
 
       {/* ── TAB: POR DATA ───────────────────────────────────────────────────── */}
@@ -215,22 +225,24 @@ export default function Reports() {
           </button>
         </>)}
 
-        <table className="table">
-          <thead><tr><th>Paciente</th><th>Data</th><th>Horário</th><th>Status</th><th>Valor</th></tr></thead>
-          <tbody>
-            {byDateData.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro no período.</td></tr>
-            ) : byDateData.map(a => (
-              <tr key={a.id}>
-                <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
-                <td>{format(new Date(a.date_time), 'dd/MM/yyyy')}</td>
-                <td>{format(new Date(a.date_time), 'HH:mm')}</td>
-                <td><span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[a.status]}18`, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
-                <td>R$ {a.fee?.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-container">
+          <table className="table">
+            <thead><tr><th>Paciente</th><th>Data</th><th>Horário</th><th>Status</th><th>Valor</th></tr></thead>
+            <tbody>
+              {byDateData.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro no período.</td></tr>
+              ) : byDateData.map(a => (
+                <tr key={a.id}>
+                  <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{format(new Date(a.date_time), 'dd/MM/yy')}</td>
+                  <td>{format(new Date(a.date_time), 'HH:mm')}</td>
+                  <td><span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[a.status]}18`, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
+                  <td>R$ {a.fee?.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </>)}
 
       {/* ── TAB: POR PERÍODO ────────────────────────────────────────────────── */}

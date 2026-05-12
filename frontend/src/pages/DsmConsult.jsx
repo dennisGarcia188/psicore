@@ -16,6 +16,13 @@ const DSM_DATA = [
 
 export default function DsmConsult() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useState(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const normalize = (str) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -33,8 +40,8 @@ export default function DsmConsult() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Consulta DSM-5</h2>
-          <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Pesquise por códigos ou sintomas dos principais transtornos.</p>
+          <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Consulta DSM-5</h2>
+          <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem', fontSize: isMobile ? '0.875rem' : '1rem' }}>Pesquise por códigos ou sintomas dos principais transtornos.</p>
         </div>
       </div>
 
@@ -51,7 +58,7 @@ export default function DsmConsult() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
         {filteredDsm.map((item, index) => (
           <div key={index} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>

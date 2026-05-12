@@ -16,10 +16,14 @@ export default function PatientDetail() {
   const [editMode, setEditMode] = useState(false);
   const [editedPatient, setEditedPatient] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     fetchPatientData();
     fetchTemplates();
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [id]);
 
   const fetchPatientData = async () => {
@@ -99,14 +103,15 @@ export default function PatientDetail() {
     <button 
       onClick={() => setActiveTab(id)}
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 1.5rem',
+        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
         borderBottom: activeTab === id ? '2px solid var(--color-primary)' : '2px solid transparent',
         color: activeTab === id ? 'var(--color-primary)' : 'var(--color-text-muted)',
         fontWeight: activeTab === id ? 600 : 500,
-        backgroundColor: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer'
+        backgroundColor: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer',
+        whiteSpace: 'nowrap', flexShrink: 0, fontSize: isMobile ? '0.8rem' : '1rem'
       }}
     >
-      <Icon size={18} /> {label}
+      <Icon size={isMobile ? 16 : 18} /> {label}
     </button>
   );
 
@@ -116,36 +121,36 @@ export default function PatientDetail() {
         <ArrowLeft size={20} /> Voltar para Pacientes
       </Link>
 
-      <div style={{ backgroundColor: 'var(--color-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{patient.name}</h2>
-        <div style={{ display: 'flex', gap: '2rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+      <div style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1.5rem' : '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{patient.name}</h2>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '0.5rem' : '2rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
           <p>CPF: {patient.cpf || '-'}</p>
           <p>Telefone: {patient.phone || '-'}</p>
           <p>E-mail: {patient.email || '-'}</p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem' }}>
+      <div className="hide-scrollbar" style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem', overflowX: isMobile ? 'auto' : 'visible' }}>
         <TabButton id="dados" label="Dados Pessoais" icon={User} />
-        <TabButton id="prontuario" label="Histórico de Sessões" icon={Clock} />
+        <TabButton id="prontuario" label="Histórico" icon={Clock} />
         <TabButton id="financeiro" label="Financeiro" icon={DollarSign} />
       </div>
 
       {activeTab === 'dados' && (
-        <div style={{ backgroundColor: 'var(--color-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+        <div style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1.25rem' : '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
             <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Informações Cadastrais</h3>
             {!editMode ? (
-              <button onClick={() => setEditMode(true)} className="btn btn-secondary">Editar Informações</button>
+              <button onClick={() => setEditMode(true)} className="btn btn-secondary" style={{ width: isMobile ? '100%' : 'auto' }}>Editar Informações</button>
             ) : (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => { setEditMode(false); setEditedPatient(patient); }} className="btn" style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)' }}>Cancelar</button>
-                <button onClick={handleUpdatePatient} disabled={updating} className="btn btn-primary">{updating ? 'Salvando...' : 'Salvar Alterações'}</button>
+              <div style={{ display: 'flex', gap: '0.5rem', width: isMobile ? '100%' : 'auto' }}>
+                <button onClick={() => { setEditMode(false); setEditedPatient(patient); }} className="btn" style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)', flex: 1 }}>Cancelar</button>
+                <button onClick={handleUpdatePatient} disabled={updating} className="btn btn-primary" style={{ flex: 2 }}>{updating ? 'Salvando...' : 'Salvar'}</button>
               </div>
             )}
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
             {!editMode ? (
               <>
                 <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Nome Completo</strong>{patient.name}</div>
@@ -203,9 +208,9 @@ export default function PatientDetail() {
 
       {activeTab === 'prontuario' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Histórico Completo</h3>
-            <button onClick={() => setShowNoteModal(true)} className="btn btn-primary">
+            <button onClick={() => setShowNoteModal(true)} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
               <Plus size={20} /> Evolução Avulsa
             </button>
           </div>
@@ -218,15 +223,15 @@ export default function PatientDetail() {
             ) : (
               [...appointments].sort((a,b) => new Date(b.date_time) - new Date(a.date_time)).map(appt => (
                 <div key={appt.id} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', borderLeft: '4px solid var(--color-primary)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
                     <div>
                       <strong style={{ fontSize: '1.125rem', color: 'var(--color-primary)' }}>{new Date(appt.date_time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
                         <span className={`badge ${appt.status === 'Confirmada' ? 'badge-primary' : appt.status === 'Realizada' ? 'badge-success' : appt.status === 'Cancelada' ? 'badge-error' : 'badge-warning'}`}>{appt.status}</span>
-                        <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>{appt.is_paid ? 'Pago' : 'Pagamento Pendente'}</span>
+                        <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>{appt.is_paid ? 'Pago' : 'Pendente'}</span>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
                       <strong style={{ fontSize: '1.125rem', color: 'var(--color-text-main)' }}>R$ {appt.fee?.toFixed(2)}</strong>
                     </div>
                   </div>

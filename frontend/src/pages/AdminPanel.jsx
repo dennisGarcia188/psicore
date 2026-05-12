@@ -57,6 +57,17 @@ export default function AdminPanel() {
   
   const navigate = useNavigate();
   const aApi = adminApi();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+      if (window.innerWidth > 1024) setIsMobileMenuOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -235,9 +246,58 @@ export default function AdminPanel() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0F172A', color: 'white', display: 'flex' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0F172A', color: 'white', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
+      
+      {/* Mobile Header */}
+      {isMobile && (
+        <header style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          padding: '1rem 1.5rem', 
+          backgroundColor: '#1E293B', 
+          borderBottom: '1px solid #334155',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Brain size={24} color="#0284C7" />
+            <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>PsiCore</span>
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <LayoutDashboard size={24} />}
+          </button>
+        </header>
+      )}
+
+      {/* Sidebar Overlay for Mobile */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', zIndex: 140 }}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside style={{ width: '260px', backgroundColor: '#1E293B', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '1.5rem', position: 'fixed', height: '100vh', zIndex: 50 }}>
+      <aside style={{ 
+        width: isMobile ? '280px' : '260px', 
+        backgroundColor: '#1E293B', 
+        borderRight: isMobile ? 'none' : '1px solid #334155', 
+        display: (isMobile && !isMobileMenuOpen) ? 'none' : 'flex', 
+        flexDirection: 'column', 
+        padding: '1.5rem', 
+        position: 'fixed', 
+        top: 0,
+        left: 0,
+        height: '100vh', 
+        zIndex: 150,
+        transition: 'transform 0.3s ease',
+        transform: (isMobile && !isMobileMenuOpen) ? 'translateX(-100%)' : 'translateX(0)'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem' }}>
           <Brain size={32} color="#0284C7" />
           <div>
@@ -247,40 +307,53 @@ export default function AdminPanel() {
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-          <NavItem id="users" icon={Users} label="Psicólogos" />
-          <NavItem id="finance" icon={DollarSign} label="Financeiro" />
+          <div onClick={() => isMobile && setIsMobileMenuOpen(false)}>
+            <NavItem id="users" icon={Users} label="Psicólogos" />
+          </div>
+          <div onClick={() => isMobile && setIsMobileMenuOpen(false)}>
+            <NavItem id="finance" icon={DollarSign} label="Financeiro" />
+          </div>
           <div style={{ margin: '1.5rem 0', borderTop: '1px solid #334155' }} />
           <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: 'transparent', color: '#EF4444', border: 'none', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', textAlign: 'left' }}>
             <LogOut size={20} /> Sair
           </button>
         </nav>
 
-        <div style={{ backgroundColor: 'rgba(2,132,199,0.05)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(2,132,199,0.1)' }}>
-          <p style={{ color: '#64748B', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>Status Sistema</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Operacional</span>
+        {!isMobile && (
+          <div style={{ backgroundColor: 'rgba(2,132,199,0.05)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(2,132,199,0.1)' }}>
+            <p style={{ color: '#64748B', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>Status Sistema</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+              <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Operacional</span>
+            </div>
           </div>
-        </div>
+        )}
       </aside>
 
       {/* Main Content */}
-      <main style={{ marginLeft: '260px', flex: 1, padding: '2rem 3rem' }}>
+      <main style={{ 
+        marginLeft: isMobile ? 0 : '260px', 
+        flex: 1, 
+        padding: isMobile ? '1.5rem' : '2rem 3rem',
+        width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'hidden'
+      }}>
         
         {activeTab === 'users' ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '1.5rem', marginBottom: '2rem' }}>
               <div>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 800 }}>Psicólogos</h1>
+                <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 800 }}>Psicólogos</h1>
                 <p style={{ color: '#64748B', marginTop: '0.25rem' }}>Gerencie o acesso e dados dos profissionais</p>
               </div>
-              <button onClick={() => setShowCreate(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0284C7', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)' }}>
+              <button onClick={() => setShowCreate(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0284C7', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)', width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}>
                 <Plus size={18} /> Novo Psicólogo
               </button>
             </div>
 
             {/* Estatísticas Rápidas */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
               {[
                 { label: 'Total', value: stats.total, icon: Users, color: '#0284C7' },
                 { label: 'Ativos', value: stats.active, icon: CheckCircle, color: '#10B981' },
@@ -301,9 +374,8 @@ export default function AdminPanel() {
               ))}
             </div>
 
-            {/* Tabela */}
-            <div style={{ backgroundColor: '#1E293B', borderRadius: '16px', border: '1px solid #334155', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ backgroundColor: '#1E293B', borderRadius: '16px', border: '1px solid #334155', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '100%', overflowX: 'auto' }}>
+              <table style={{ width: isMobile ? '800px' : '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#0F172A' }}>
                     {['Psicólogo', 'CRP / Especialidade', 'Pacientes', 'Último Acesso', 'Status', 'Ações'].map(h => (
@@ -374,19 +446,19 @@ export default function AdminPanel() {
           </>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '1.5rem', marginBottom: '2rem' }}>
               <div>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 800 }}>Módulo Financeiro</h1>
+                <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 800 }}>Módulo Financeiro</h1>
                 <p style={{ color: '#64748B', marginTop: '0.25rem' }}>Controle de cobranças e faturamento mensal</p>
               </div>
-              <button onClick={() => setShowGenerateCharge(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0284C7', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)' }}>
+              <button onClick={() => setShowGenerateCharge(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0284C7', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)', width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}>
                 <Plus size={18} /> Gerar Cobrança
               </button>
             </div>
 
             {/* Filtros e Stats */}
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ flex: 2, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.5rem', marginBottom: '2rem' }}>
+              <div style={{ flex: 2, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1.5rem' }}>
                 <div style={{ backgroundColor: '#1E293B', padding: '1.25rem', borderRadius: '16px', border: '1px solid #334155', borderLeft: '4px solid #10B981' }}>
                   <p style={{ color: '#64748B', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Recebido no Mês</p>
                   <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10B981' }}>R$ {stats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
@@ -416,15 +488,12 @@ export default function AdminPanel() {
                     {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </div>
-                <div style={{ padding: '0.5rem', backgroundColor: '#0284C720', borderRadius: '8px', color: '#0284C7', marginTop: '1.2rem' }}>
-                   <Filter size={18} />
-                </div>
               </div>
             </div>
 
             {/* Tabela de Cobranças */}
-            <div style={{ backgroundColor: '#1E293B', borderRadius: '16px', border: '1px solid #334155', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ backgroundColor: '#1E293B', borderRadius: '16px', border: '1px solid #334155', overflow: 'hidden', width: '100%', overflowX: 'auto' }}>
+              <table style={{ width: isMobile ? '800px' : '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#0F172A' }}>
                     {['Psicólogo', 'Mês Ref.', 'Valor', 'Vencimento', 'Status', 'Ação'].map(h => (

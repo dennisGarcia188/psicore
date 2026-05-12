@@ -12,10 +12,14 @@ export default function PatientsList() {
     name: '', email: '', phone: '', cpf: '', rg: '', 
     address: '', profession: '', emergency_contact: '', marital_status: '', birth_date: ''
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchPatients();
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const fetchPatients = async () => {
@@ -130,9 +134,9 @@ export default function PatientsList() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Meus Pacientes</h2>
-        <button onClick={() => setShowModal(true)} className="btn btn-primary">
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Meus Pacientes</h2>
+        <button onClick={() => setShowModal(true)} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Plus size={20} /> Novo Paciente
         </button>
       </div>
@@ -155,7 +159,7 @@ export default function PatientsList() {
           <p>Tente ajustar sua busca ou cadastrar um novo paciente.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
           {filteredPatients.map(patient => (
             <PatientCard key={patient.id} patient={patient} />
           ))}
@@ -166,9 +170,9 @@ export default function PatientsList() {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Novo Paciente</h3>
-            <form onSubmit={handleCreatePatient}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+             <form onSubmit={handleCreatePatient}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0 1rem' }}>
+                <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
                   <label>Nome Completo *</label>
                   <input type="text" className="input-control" required value={newPatient.name} onChange={e => setNewPatient({...newPatient, name: e.target.value})} placeholder="Ex: João da Silva" />
                 </div>
@@ -188,7 +192,7 @@ export default function PatientsList() {
                   <label>Email</label>
                   <input type="email" className="input-control" value={newPatient.email} onChange={e => setNewPatient({...newPatient, email: e.target.value})} placeholder="joao@email.com" />
                 </div>
-                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
                   <label>Endereço Completo</label>
                   <input type="text" className="input-control" value={newPatient.address} onChange={e => setNewPatient({...newPatient, address: e.target.value})} placeholder="Rua Exemplo, 123 - Bairro" />
                 </div>
@@ -200,7 +204,7 @@ export default function PatientsList() {
                   <label>Contato de Emergência</label>
                   <input type="text" className="input-control" value={newPatient.emergency_contact} onChange={e => setNewPatient({...newPatient, emergency_contact: maskPhone(e.target.value)})} placeholder="(00) 00000-0000 (Mãe)" />
                 </div>
-                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
                   <label>Estado Civil</label>
                   <select className="input-control" value={newPatient.marital_status} onChange={e => setNewPatient({...newPatient, marital_status: e.target.value})}>
                     <option value="">Selecione...</option>
@@ -210,7 +214,7 @@ export default function PatientsList() {
                     <option value="Viúvo">Viúvo(a)</option>
                   </select>
                 </div>
-                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
                   <label>Data de Nascimento</label>
                   <input type="date" className="input-control" value={newPatient.birth_date} onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})} />
                 </div>
