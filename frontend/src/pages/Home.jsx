@@ -5,6 +5,7 @@ import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval }
 import { ptBR } from 'date-fns/locale';
 import api from '../api';
 import AppointmentModal from '../components/AppointmentModal';
+import LoadingScreen from '../components/LoadingScreen';
 
 const STATUS_COLOR = {
   'Confirmada': 'var(--color-success)',
@@ -17,6 +18,7 @@ export default function Home() {
   const [stats, setStats] = useState({ confirmed: 0, pending: 0, totalPatients: 0 });
   const [allAppts, setAllAppts] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('today'); // 'today' | 'week'
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -28,24 +30,28 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => { fetchData(); }, []);
-
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const pRes = await api.get('/patients/');
-      const pts = pRes.data;
-      let appts = [];
-      for (let p of pts) {
-        const aRes = await api.get(`/appointments/patient/${p.id}`);
-        appts = [...appts, ...aRes.data.map(a => ({ ...a, patient_name: p.name }))];
-      }
+      // Optimized: Fetch all data in parallel
+      const [patientsRes, appointmentsRes] = await Promise.all([
+        api.get('/patients/'),
+        api.get('/appointments/')
+      ]);
+      
+      const pts = patientsRes.data;
+      const appts = appointmentsRes.data;
+
       const confirmed = appts.filter(a => a.status === 'Confirmada').length;
       const pending   = appts.filter(a => a.status === 'Aguardando Confirmação').length;
+      
       setStats({ confirmed, pending, totalPatients: pts.length });
       setPatients(pts);
       setAllAppts(appts.sort((a, b) => new Date(a.date_time) - new Date(b.date_time)));
     } catch (err) {
       console.error('Erro ao buscar dados', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -184,6 +190,8 @@ export default function Home() {
       alert('Erro ao excluir consulta.');
     }
   };
+
+  if (loading) return <LoadingScreen />;
 
   const todayStr = format(new Date(), 'MM-dd');
   const birthdaysToday = patients.filter(p => p.birth_date && p.birth_date.endsWith(todayStr));

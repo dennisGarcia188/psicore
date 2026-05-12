@@ -82,6 +82,9 @@ class Appointment(AppointmentBase):
     class Config:
         from_attributes = True
 
+class AppointmentWithPatient(Appointment):
+    patient_name: str
+
 class AppointmentPatch(BaseModel):
     date_time: Optional[datetime] = None
     status: Optional[str] = None

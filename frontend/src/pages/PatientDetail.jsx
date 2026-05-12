@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, CheckCircle, Clock, FileText, User, DollarSign } from 'lucide-react';
 import api from '../api';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -97,7 +98,7 @@ export default function PatientDetail() {
     }
   };
 
-  if (!patient) return <div>Carregando...</div>;
+  if (!patient) return <LoadingScreen />;
 
   const TabButton = ({ id, label, icon: Icon }) => (
     <button 
@@ -237,7 +238,18 @@ export default function PatientDetail() {
                   </div>
                   
                   {appt.notes ? (
-                    <div style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text-main)', lineHeight: '1.6', backgroundColor: 'var(--color-background)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ 
+                      whiteSpace: 'pre-wrap', 
+                      overflowWrap: 'break-word', 
+                      wordBreak: 'break-word', 
+                      color: 'var(--color-text-main)', 
+                      lineHeight: '1.6', 
+                      backgroundColor: 'var(--color-background)', 
+                      padding: '1rem', 
+                      borderRadius: 'var(--radius-md)', 
+                      border: '1px solid var(--color-border)',
+                      maxWidth: '100%'
+                    }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
                         <FileText size={14} /> Anotações da Sessão
                       </div>

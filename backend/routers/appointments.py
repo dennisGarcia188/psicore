@@ -12,6 +12,13 @@ router = APIRouter(
     tags=["Appointments"]
 )
 
+@router.get("/", response_model=List[schemas.AppointmentWithPatient])
+def read_all_appointments(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    appointments = db.query(models.Appointment).join(models.Patient).filter(models.Patient.owner_id == current_user.id).order_by(models.Appointment.date_time.desc()).all()
+    for appt in appointments:
+        appt.patient_name = appt.patient.name
+    return appointments
+
 def verify_patient_owner(patient_id: int, db: Session, current_user: models.User):
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id, models.Patient.owner_id == current_user.id).first()
     if not patient:

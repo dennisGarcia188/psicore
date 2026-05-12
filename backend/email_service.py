@@ -48,13 +48,13 @@ def _send(to: str, subject: str, html: str):
     
     try:
         response = resend.Emails.send({"from": EMAIL_FROM, "to": [to], "subject": subject, "html": html})
-        # Verifica se a resposta é um dicionário e tem 'id'
         if isinstance(response, dict) and "id" in response:
             logger.info(f"✅ E-mail enviado com sucesso! ID: {response['id']} → Destinatário: {to}")
         else:
-            logger.error(f"❌ Resend retornou algo inesperado. Resposta: {response}")
+            logger.error(f"❌ Resend retornou algo inesperado. Resposta: {response} | Destinatário: {to}")
     except Exception as e:
         logger.error(f"❌ Erro crítico ao enviar e-mail para {to}: {str(e)}")
+        logger.error(f"DETALHES: From: {EMAIL_FROM}, API_KEY: {'Configurada' if resend.api_key else 'NÃO CONFIGURADA'}")
         if "403" in str(e) or "unauthorized" in str(e).lower():
             logger.error("DICA: Verifique se sua API KEY está correta e se o domínio do remetente está verificado no Resend.")
 

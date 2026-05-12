@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Brain } from 'lucide-react';
 import api from '../api';
 
 export default function LoginPage() {
@@ -38,20 +39,56 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-background)' }} className="animate-fade-in">
-      <div style={{ backgroundColor: 'var(--color-surface)', padding: '3rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '400px' }}>
-        <h2 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>PsicoManager</h2>
-        <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>Faça login na sua conta</p>
+    <div style={{ 
+      display: 'flex', 
+      minHeight: '100vh', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      backgroundColor: '#0F172A' 
+    }} className="animate-fade-in">
+      <div style={{ 
+        backgroundColor: '#1E293B', 
+        padding: '3rem', 
+        borderRadius: '24px', 
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', 
+        width: '100%', 
+        maxWidth: '420px',
+        border: '1px solid #334155'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            backgroundColor: 'rgba(2,132,199,0.1)', 
+            borderRadius: '16px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            margin: '0 auto 1rem' 
+          }}>
+            <Brain size={40} color="#0284C7" strokeWidth={2.5} />
+          </div>
+          <h2 style={{ fontSize: '2rem', fontWeight: 900, color: 'white', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>PsiCore</h2>
+          <p style={{ color: '#64748B', fontSize: '0.95rem' }}>Faça login na sua conta profissional</p>
+        </div>
         
         {error && (
-          <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-error)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: 'var(--font-size-sm)' }}>
+          <div style={{ 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+            color: '#EF4444', 
+            padding: '1rem', 
+            borderRadius: '12px', 
+            marginBottom: '1.5rem', 
+            fontSize: '0.875rem',
+            border: '1px solid rgba(239, 68, 68, 0.2)'
+          }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleLogin}>
           <div className="input-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email" style={{ color: '#94A3B8', fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>E-mail Profissional</label>
             <input 
               type="email" 
               id="email" 
@@ -60,11 +97,17 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
+              style={{ 
+                backgroundColor: '#0F172A', 
+                border: '1px solid #334155', 
+                color: 'white',
+                padding: '0.875rem 1rem'
+              }}
             />
           </div>
           
-          <div className="input-group" style={{ marginBottom: '2rem' }}>
-            <label htmlFor="password">Senha</label>
+          <div className="input-group" style={{ marginBottom: '2.5rem' }}>
+            <label htmlFor="password" style={{ color: '#94A3B8', fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Senha</label>
             <input 
               type="password" 
               id="password" 
@@ -73,17 +116,39 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              style={{ 
+                backgroundColor: '#0F172A', 
+                border: '1px solid #334155', 
+                color: 'white',
+                padding: '0.875rem 1rem'
+              }}
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem' }} disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar'}
+          <button type="submit" className="btn btn-primary" style={{ 
+            width: '100%', 
+            padding: '1rem', 
+            fontSize: '1rem', 
+            fontWeight: 800,
+            borderRadius: '12px',
+            backgroundColor: '#0284C7',
+            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)'
+          }} disabled={loading}>
+            {loading ? 'Autenticando...' : 'Entrar na Plataforma'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
-          Não tem uma conta? <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>Cadastre-se</Link>
-        </p>
+        <div style={{ 
+          marginTop: '2.5rem', 
+          paddingTop: '1.5rem', 
+          borderTop: '1px solid #334155', 
+          textAlign: 'center' 
+        }}>
+          <p style={{ fontSize: '0.9rem', color: '#64748B' }}>
+            Ainda não tem uma conta? <br />
+            <Link to="/register" style={{ color: '#0284C7', fontWeight: 700, textDecoration: 'none', display: 'inline-block', marginTop: '0.5rem' }}>Solicitar Acesso Gratuito</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
