@@ -9,6 +9,7 @@ export default function SettingsPage() {
     name: '', email: '', crp: '', specialty: '', phone: '',
     clinic_name: '', clinic_cnpj: '', clinic_address: '', clinic_phone: '',
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -43,8 +44,10 @@ export default function SettingsPage() {
       } finally {
         setInitialLoading(false);
       }
-    };
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
     fetchProfile();
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
@@ -76,8 +79,8 @@ export default function SettingsPage() {
   return (
     <div className="animate-fade-in" style={{ display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: '700px' }}>
-        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Meu Perfil</h2>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>Gerencie seus dados profissionais e do consultório.</p>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, marginBottom: '0.5rem', textAlign: isMobile ? 'center' : 'left' }}>Meu Perfil</h2>
+        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', textAlign: isMobile ? 'center' : 'left' }}>Gerencie seus dados profissionais e do consultório.</p>
 
         <div style={{ backgroundColor: 'var(--color-surface)', padding: '2.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)' }}>
           

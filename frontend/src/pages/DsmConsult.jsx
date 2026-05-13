@@ -18,7 +18,7 @@ export default function DsmConsult() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  useState(() => {
+  useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -38,8 +38,8 @@ export default function DsmConsult() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
+      <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
           <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Consulta DSM-5</h2>
           <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem', fontSize: isMobile ? '0.875rem' : '1rem' }}>Pesquise por códigos ou sintomas dos principais transtornos.</p>
         </div>

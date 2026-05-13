@@ -59,20 +59,17 @@ def _send(to: str, subject: str, html: str):
             logger.error("DICA: Verifique se sua API KEY está correta e se o domínio do remetente está verificado no Resend.")
 
 
-def send_welcome_email(patient_name=None, patient_email=None, psychologist_name=None, psychologist_email=None, password=None):
+def send_welcome_email(patient_name=None, patient_email=None, psychologist_name=None, psychologist_email=None):
     if psychologist_email and psychologist_name:
         login_url = f"{FRONTEND_URL}/login"
         content = f"""
 <h2 style="margin:0 0 8px;font-size:22px;color:#0F172A;">Bem-vindo, {psychologist_name}! 🎉</h2>
-<p style="color:#64748B;margin:0 0 24px;">Sua conta foi criada com sucesso no PsiCore. Aqui estão seus dados de acesso:</p>
+<p style="color:#64748B;margin:0 0 24px;">Sua conta foi criada com sucesso no PsiCore. Para começar a gerenciar seus atendimentos, acesse nossa plataforma:</p>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:20px;margin-bottom:24px;">
 <tr><td>
   <p style="margin:0 0 4px;font-size:12px;color:#64748B;text-transform:uppercase;font-weight:700;">Usuário (E-mail)</p>
-  <p style="margin:0 0 16px;font-size:16px;color:#0F172A;font-weight:600;">{psychologist_email}</p>
-  
-  <p style="margin:0 0 4px;font-size:12px;color:#64748B;text-transform:uppercase;font-weight:700;">Senha</p>
-  <p style="margin:0 0 0;font-size:16px;color:#0F172A;font-weight:600;">{password if password else 'A senha que você cadastrou'}</p>
+  <p style="margin:0 0 0;font-size:16px;color:#0F172A;font-weight:600;">{psychologist_email}</p>
 </td></tr>
 </table>
 

@@ -198,8 +198,8 @@ export default function Home() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.5rem', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Visão Geral</h2>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'center' : 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, textAlign: isMobile ? 'center' : 'left' }}>Visão Geral</h2>
         <div style={{ display: 'flex', gap: '0.75rem', width: isMobile ? '100%' : 'auto' }}>
           <Link to="/dashboard/patients" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: isMobile ? 1 : 'none', padding: isMobile ? '0.625rem 0.5rem' : '0.625rem 1.25rem', fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
             <Plus size={16} /> Novo Paciente

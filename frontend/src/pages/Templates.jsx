@@ -57,8 +57,8 @@ export default function Templates() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Modelos de Prontuário</h2>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'center' : 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, textAlign: isMobile ? 'center' : 'left' }}>Modelos de Prontuário</h2>
         <button onClick={() => setShowModal(true)} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Plus size={20} /> Novo Modelo
         </button>

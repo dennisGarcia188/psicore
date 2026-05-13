@@ -6,7 +6,6 @@ import api from '../api';
 import LoadingScreen from '../components/LoadingScreen';
 
 const TABS = [
-  { key: 'financial', label: 'Financeiro', icon: DollarSign },
   { key: 'bydate', label: 'Consultas por Data', icon: Calendar },
   { key: 'period', label: 'Atendimentos por Período', icon: BarChart2 },
 ];
@@ -25,7 +24,7 @@ function exportCSV(rows, filename) {
 }
 
 export default function Reports() {
-  const [tab, setTab] = useState('financial');
+  const [tab, setTab] = useState('bydate');
   const [allAppts, setAllAppts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -145,7 +144,7 @@ export default function Reports() {
 
   return (
     <div className="animate-fade-in">
-      <h2 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '1.75rem' }}>Relatórios</h2>
+      <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, marginBottom: '1.75rem', textAlign: isMobile ? 'center' : 'left' }}>Relatórios</h2>
 
       {/* Tabs */}
       <div className="hide-scrollbar" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', backgroundColor: 'var(--color-surface)', padding: '0.375rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', width: isMobile ? '100%' : 'fit-content', overflowX: isMobile ? 'auto' : 'visible' }}>
@@ -158,54 +157,6 @@ export default function Reports() {
 
       {loading && <LoadingScreen />}
 
-      {/* ── TAB: FINANCEIRO ─────────────────────────────────────────────────── */}
-      {!loading && tab === 'financial' && card(<>
-        {filterBar(<>
-          <input type="month" value={finMonth} onChange={e => setFinMonth(e.target.value)} className="input-control" style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.8rem' }} />
-          {select(finPaid, setFinPaid, [['all','Todos'],['paid','Pagos'],['pending','Pendentes']])}
-          <button onClick={() => exportCSV(
-            [['Paciente','Data','Valor','Status Pagamento','Status Consulta'],
-             ...finData.map(a => [a.patient_name, format(new Date(a.date_time), 'dd/MM/yyyy HH:mm'), `R$ ${a.fee?.toFixed(2)}`, a.is_paid ? 'Pago' : 'Pendente', a.status])],
-            'financeiro.csv'
-          )} className="btn btn-secondary" style={{ marginLeft: 'auto', fontSize: '0.8rem', padding: '0.4rem 0.875rem' }}>
-            <Download size={14} /> Exportar CSV
-          </button>
-        </>)}
-
-        {/* Totalizadores */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1px', backgroundColor: 'var(--color-border)' }}>
-          {[
-            { label: 'Total Faturado', value: finTotals.total, color: 'var(--color-primary)' },
-            { label: 'Recebido', value: finTotals.received, color: 'var(--color-success)' },
-            { label: 'Pendente', value: finTotals.pending, color: 'var(--color-warning)' },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1rem' : '1.5rem', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>{label}</p>
-              <p style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: 800, color }}>{`R$ ${value.toFixed(2).replace('.', ',')}`}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabela */}
-        <div className="table-container">
-          <table className="table">
-            <thead><tr><th>Paciente</th><th>Data</th><th>Valor</th><th>Pagamento</th><th>Status</th></tr></thead>
-            <tbody>
-              {finData.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro encontrado.</td></tr>
-              ) : finData.map(a => (
-                <tr key={a.id}>
-                  <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{format(new Date(a.date_time), 'dd/MM/yy HH:mm')}</td>
-                  <td style={{ fontWeight: 600 }}>R$ {a.fee?.toFixed(2)}</td>
-                  <td><span className={`badge ${a.is_paid ? 'badge-success' : 'badge-warning'}`}>{a.is_paid ? 'Pago' : 'Pendente'}</span></td>
-                  <td><span style={{ fontSize: '0.75rem', fontWeight: 600, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </>)}
 
       {/* ── TAB: POR DATA ───────────────────────────────────────────────────── */}
       {!loading && tab === 'bydate' && card(<>

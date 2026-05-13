@@ -319,51 +319,72 @@ export default function LandingPage() {
               </div>
             )}
 
-            <form onSubmit={handleRegister}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                <Section title="Dados de Acesso" />
-                <div className="input-group" style={{ gridColumn: 'span 2' }}>
-                  <label>Nome Completo *</label>
-                  <input type="text" className="input-control" required placeholder="Dr. João da Silva" value={form.name} onChange={e => set('name', e.target.value)} />
+            <div style={{ position: 'relative' }}>
+              {loading && (
+                <div style={{
+                  position: 'absolute',
+                  inset: '-1rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(2px)',
+                  zIndex: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 'var(--radius-xl)',
+                  gap: '1rem'
+                }}>
+                  <div className="spinner"></div>
+                  <p style={{ color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.9rem' }}>Criando sua conta...</p>
                 </div>
-                <div className="input-group">
-                  <label>E-mail *</label>
-                  <input type="email" className="input-control" required placeholder="seu@email.com" value={form.email} onChange={e => set('email', e.target.value)} />
-                </div>
-                <div className="input-group">
-                  <label>Senha *</label>
-                  <input type="password" className="input-control" required placeholder="Mínimo 6 caracteres" value={form.password} onChange={e => set('password', e.target.value)} />
+              )}
+
+              <form onSubmit={handleRegister}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                  <Section title="Dados de Acesso" />
+                  <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                    <label>Nome Completo *</label>
+                    <input type="text" className="input-control" required placeholder="Dr. João da Silva" value={form.name} onChange={e => set('name', e.target.value)} />
+                  </div>
+                  <div className="input-group">
+                    <label>E-mail *</label>
+                    <input type="email" className="input-control" required placeholder="seu@email.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                  </div>
+                  <div className="input-group">
+                    <label>Senha *</label>
+                    <input type="password" className="input-control" required placeholder="Mínimo 6 caracteres" value={form.password} onChange={e => set('password', e.target.value)} />
+                  </div>
+
+                  <Section title="Dados Profissionais" />
+                  <div className="input-group">
+                    <label>CRP</label>
+                    <input type="text" className="input-control" placeholder="CRP 06/123456" value={form.crp} onChange={e => set('crp', e.target.value)} />
+                  </div>
+                  <div className="input-group">
+                    <label>Especialidade</label>
+                    <select className="input-control" value={form.specialty} onChange={e => set('specialty', e.target.value)}>
+                      <option value="">Selecione...</option>
+                      <option>Psicanálise</option>
+                      <option>TCC (Terapia Cognitivo-Comportamental)</option>
+                      <option>Gestalt-terapia</option>
+                      <option>Humanismo</option>
+                      <option>Psicologia Positiva</option>
+                      <option>EMDR</option>
+                      <option>DBT</option>
+                      <option>Outra</option>
+                    </select>
+                  </div>
+                  <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                    <label>Telefone Profissional</label>
+                    <input type="text" className="input-control" placeholder="(00) 00000-0000" value={form.phone} onChange={e => set('phone', maskPhone(e.target.value))} />
+                  </div>
                 </div>
 
-                <Section title="Dados Profissionais" />
-                <div className="input-group">
-                  <label>CRP</label>
-                  <input type="text" className="input-control" placeholder="CRP 06/123456" value={form.crp} onChange={e => set('crp', e.target.value)} />
-                </div>
-                <div className="input-group">
-                  <label>Especialidade</label>
-                  <select className="input-control" value={form.specialty} onChange={e => set('specialty', e.target.value)}>
-                    <option value="">Selecione...</option>
-                    <option>Psicanálise</option>
-                    <option>TCC (Terapia Cognitivo-Comportamental)</option>
-                    <option>Gestalt-terapia</option>
-                    <option>Humanismo</option>
-                    <option>Psicologia Positiva</option>
-                    <option>EMDR</option>
-                    <option>DBT</option>
-                    <option>Outra</option>
-                  </select>
-                </div>
-                <div className="input-group" style={{ gridColumn: 'span 2' }}>
-                  <label>Telefone Profissional</label>
-                  <input type="text" className="input-control" placeholder="(00) 00000-0000" value={form.phone} onChange={e => set('phone', maskPhone(e.target.value))} />
-                </div>
-              </div>
-
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', marginTop: '1.5rem', fontSize: '1rem' }} disabled={loading}>
-                {loading ? 'Criando conta...' : 'Criar Minha Conta no PsiCore'}
-              </button>
-            </form>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', marginTop: '1.5rem', fontSize: '1rem' }} disabled={loading}>
+                  {loading ? 'Criando conta...' : 'Criar Minha Conta no PsiCore'}
+                </button>
+              </form>
+            </div>
 
             <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
               Já tem uma conta? <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Fazer login</Link>
@@ -401,6 +422,17 @@ export default function LandingPage() {
           .modal-content form > div > div {
             grid-column: span 1 !important;
           }
+        }
+        .spinner {
+          width: 32px;
+          height: 32px;
+          border: 3px solid var(--color-border);
+          border-top-color: var(--color-primary);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

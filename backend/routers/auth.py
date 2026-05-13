@@ -69,8 +69,7 @@ def register(user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Se
     background_tasks.add_task(
         send_welcome_email,
         psychologist_name=db_user.name,
-        psychologist_email=db_user.email,
-        password=user.password
+        psychologist_email=db_user.email
     )
 
     return db_user

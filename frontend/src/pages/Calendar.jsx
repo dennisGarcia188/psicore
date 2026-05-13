@@ -195,8 +195,8 @@ export default function CalendarView() {
 
   return (
     <div className="animate-fade-in" style={{ height: isMobile ? '700px' : 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700 }}>Minha Agenda</h2>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'center' : 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, textAlign: isMobile ? 'center' : 'left' }}>Minha Agenda</h2>
         <button onClick={openNewModal} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Plus size={18} /> Novo Agendamento
         </button>
