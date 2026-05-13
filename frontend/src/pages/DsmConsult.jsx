@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Book } from 'lucide-react';
 
 const DSM_DATA = [

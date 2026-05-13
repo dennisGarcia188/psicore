@@ -44,6 +44,7 @@ export default function SettingsPage() {
       } finally {
         setInitialLoading(false);
       }
+    };
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     fetchProfile();

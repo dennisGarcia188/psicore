@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
 import api from '../api';
 import LoadingScreen from '../components/LoadingScreen';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Templates() {
   const [templates, setTemplates] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ title: '', type: 'Atestado', content: '' });
   const [loading, setLoading] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -43,13 +46,17 @@ export default function Templates() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Deseja mesmo excluir este modelo?")) {
-      try {
-        await api.delete(`/templates/${id}`);
-        fetchTemplates();
-      } catch (err) {
-        console.error('Erro ao excluir modelo', err);
-      }
+    setTemplateToDelete(id);
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!templateToDelete) return;
+    try {
+      await api.delete(`/templates/${templateToDelete}`);
+      fetchTemplates();
+    } catch (err) {
+      console.error('Erro ao excluir modelo', err);
     }
   };
 
@@ -115,6 +122,14 @@ export default function Templates() {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Excluir Modelo"
+        message="Deseja mesmo excluir este modelo de prontuário? Esta ação é irreversível."
+      />
     </div>
   );
 }

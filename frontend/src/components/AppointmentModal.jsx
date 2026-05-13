@@ -4,6 +4,7 @@ import DateTimePicker from './DateTimePicker';
 import CurrencyInput from 'react-currency-input-field';
 import { format as fmt } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import ConfirmModal from './ConfirmModal';
 
 const STATUS_COLORS = {
   'Confirmada': '#10B981',
@@ -28,6 +29,7 @@ export default function AppointmentModal({
   const [activeTab, setActiveTab] = useState('dados');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -55,12 +57,15 @@ export default function AppointmentModal({
     setSaving(false);
   };
 
-  const handleDeleteClick = async () => {
-    if (window.confirm("Tem certeza que deseja excluir esta consulta?")) {
-      setDeleting(true);
-      await onDelete(appointment.id);
-      setDeleting(false);
-    }
+  const handleDeleteClick = () => {
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setDeleting(true);
+    await onDelete(appointment.id);
+    setDeleting(false);
+    setShowConfirm(false);
   };
 
   if (!appointment) return null;
@@ -186,6 +191,14 @@ export default function AppointmentModal({
           </button>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Excluir Consulta"
+        message="Tem certeza que deseja excluir este agendamento? Esta ação não poderá ser desfeita."
+      />
     </div>
   );
 }

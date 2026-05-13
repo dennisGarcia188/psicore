@@ -4,11 +4,14 @@ import { Plus, Search, Edit2, Trash2, User, Phone, Mail, ChevronRight } from 'lu
 import { maskCPF, maskPhone, maskRG } from '../utils/masks';
 import api from '../api';
 import LoadingScreen from '../components/LoadingScreen';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function PatientsList() {
   const [patients, setPatients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState(null);
   const [newPatient, setNewPatient] = useState({ 
     name: '', email: '', phone: '', cpf: '', rg: '', 
     address: '', profession: '', emergency_contact: '', marital_status: '', birth_date: ''
@@ -55,13 +58,17 @@ export default function PatientsList() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Tem certeza que deseja excluir este paciente?")) {
-      try {
-        await api.delete(`/patients/${id}`);
-        fetchPatients();
-      } catch (err) {
-        console.error('Erro ao excluir paciente', err);
-      }
+    setPatientToDelete(id);
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!patientToDelete) return;
+    try {
+      await api.delete(`/patients/${patientToDelete}`);
+      fetchPatients();
+    } catch (err) {
+      console.error('Erro ao excluir paciente', err);
     }
   };
 
@@ -234,6 +241,14 @@ export default function PatientsList() {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Excluir Paciente"
+        message="Tem certeza que deseja excluir este paciente? Todos os agendamentos e prontuários vinculados também serão removidos permanentemente."
+      />
     </div>
   );
 }
