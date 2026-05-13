@@ -77,11 +77,26 @@ export default function Dashboard() {
           height: '70px',
         }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.75rem',
+            flex: isMobile ? 1 : 'none',
+            justifyContent: isMobile ? 'center' : 'flex-start',
+            position: isMobile ? 'relative' : 'static'
+          }}>
             {isMobile && (
               <button 
                 onClick={() => setIsMenuOpen(true)}
-                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: '0.5rem', marginLeft: '-0.5rem' }}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'var(--color-primary)', 
+                  cursor: 'pointer', 
+                  padding: '0.5rem', 
+                  position: 'absolute',
+                  left: 0
+                }}
               >
                 <Menu size={24} />
               </button>
@@ -103,7 +118,7 @@ export default function Dashboard() {
             </nav>
           )}
 
-          {!isMobile ? (
+          {!isMobile && (
             <div>
               <button 
                 onClick={handleLogout}
@@ -118,8 +133,6 @@ export default function Dashboard() {
                 <LogOut size={16} /> Sair
               </button>
             </div>
-          ) : (
-            <div style={{ width: '40px' }} /> /* Spacer for alignment */
           )}
         </div>
       </header>
@@ -187,7 +200,7 @@ export default function Dashboard() {
       )}
 
       {/* Main Content */}
-      <main className="container" style={{ flex: 1, padding: isMobile ? '1rem 0' : '2rem 0', width: '100%' }}>
+      <main className="container" style={{ flex: 1, padding: isMobile ? '1rem 0 3rem' : '2rem 0', width: '100%' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/patients" element={<PatientsList />} />

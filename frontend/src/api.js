@@ -22,7 +22,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
       // Apenas redirecionar se não for a rota de login ou register
-      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register') && window.location.pathname !== '/') {
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register') && window.location.pathname !== '/' && window.location.pathname !== '/admin') {
          window.location.href = '/login';
       }
     }

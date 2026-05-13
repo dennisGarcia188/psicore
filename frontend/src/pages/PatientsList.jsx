@@ -220,7 +220,7 @@ export default function PatientsList() {
                     <option value="Viúvo">Viúvo(a)</option>
                   </select>
                 </div>
-                <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
+                <div className="input-group" style={{ gridColumn: 'span 1' }}>
                   <label>Data de Nascimento</label>
                   <input type="date" className="input-control" value={newPatient.birth_date} onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})} />
                 </div>

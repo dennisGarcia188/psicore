@@ -59,24 +59,36 @@ def _send(to: str, subject: str, html: str):
             logger.error("DICA: Verifique se sua API KEY está correta e se o domínio do remetente está verificado no Resend.")
 
 
-def send_welcome_email(patient_name=None, patient_email=None, psychologist_name=None, psychologist_email=None):
+def send_welcome_email(patient_name=None, patient_email=None, psychologist_name=None, psychologist_email=None, password=None):
     if psychologist_email and psychologist_name:
+        login_url = f"{FRONTEND_URL}/login"
         content = f"""
 <h2 style="margin:0 0 8px;font-size:22px;color:#0F172A;">Bem-vindo, {psychologist_name}! 🎉</h2>
-<p style="color:#64748B;margin:0 0 24px;">Sua conta foi criada com sucesso no PsiCore.</p>
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border-radius:12px;padding:20px;margin-bottom:24px;">
+<p style="color:#64748B;margin:0 0 24px;">Sua conta foi criada com sucesso no PsiCore. Aqui estão seus dados de acesso:</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:20px;margin-bottom:24px;">
+<tr><td>
+  <p style="margin:0 0 4px;font-size:12px;color:#64748B;text-transform:uppercase;font-weight:700;">Usuário (E-mail)</p>
+  <p style="margin:0 0 16px;font-size:16px;color:#0F172A;font-weight:600;">{psychologist_email}</p>
+  
+  <p style="margin:0 0 4px;font-size:12px;color:#64748B;text-transform:uppercase;font-weight:700;">Senha</p>
+  <p style="margin:0 0 0;font-size:16px;color:#0F172A;font-weight:600;">{password if password else 'A senha que você cadastrou'}</p>
+</td></tr>
+</table>
+
+<div style="text-align:center;margin-bottom:24px;">
+  <a href="{login_url}" style="display:inline-block;background:#0284C7;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar minha conta →</a>
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border-radius:12px;padding:20px;">
 <tr><td>
   <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#0F172A;text-transform:uppercase;letter-spacing:0.05em;">O que você pode fazer:</p>
   <p style="margin:4px 0;font-size:14px;color:#334155;">📅 Gerenciar sua agenda e agendamentos</p>
   <p style="margin:4px 0;font-size:14px;color:#334155;">👥 Cadastrar e acompanhar seus pacientes</p>
   <p style="margin:4px 0;font-size:14px;color:#334155;">📋 Criar e manter prontuários eletrônicos</p>
   <p style="margin:4px 0;font-size:14px;color:#334155;">💰 Controlar o financeiro da sua clínica</p>
-  <p style="margin:4px 0;font-size:14px;color:#334155;">📊 Gerar relatórios de atendimentos</p>
 </td></tr>
-</table>
-<div style="text-align:center;">
-  <a href="{FRONTEND_URL}/login" style="display:inline-block;background:#0284C7;color:#fff;padding:14px 32px;border-radius:99px;text-decoration:none;font-weight:700;font-size:15px;">Acessar minha conta →</a>
-</div>"""
+</table>"""
         _send(psychologist_email, f"Bem-vindo ao PsiCore, {psychologist_name}!", _base(content))
 
     elif patient_email and patient_name:

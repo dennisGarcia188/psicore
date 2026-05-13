@@ -7,7 +7,7 @@ export default function Footer({ onContactClick }) {
     <footer style={{ 
       backgroundColor: 'rgba(2,132,199,0.04)', 
       borderTop: '1px solid var(--color-border)', 
-      padding: '3rem 0', 
+      padding: window.innerWidth <= 768 ? '2rem 1rem' : '3rem 0', 
       marginTop: 'auto' 
     }}>
       <div className="container" style={{ 

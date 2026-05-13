@@ -1,7 +1,51 @@
-import { Link } from 'react-router-dom';
-import { Activity, Shield, Users, Calendar, Brain, FileText, Zap, ArrowRight, MousePointer2 } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Activity, Shield, Users, Calendar, Brain, FileText, Zap, ArrowRight, MousePointer2, X } from 'lucide-react';
+import api from '../api';
+import { maskPhone } from '../utils/masks';
 
 export default function LandingPage() {
+  const [showRegister, setShowRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({
+    name: '', email: '', password: '',
+    crp: '', specialty: '', phone: '',
+    clinic_name: '', clinic_cnpj: '', clinic_address: '', clinic_phone: '',
+  });
+  const navigate = useNavigate();
+
+  const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const payload = { ...form };
+      await api.post('/auth/register', payload);
+
+      const formData = new URLSearchParams();
+      formData.append('username', form.email);
+      formData.append('password', form.password);
+      const loginResponse = await api.post('/auth/login', formData, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+      localStorage.setItem('token', loginResponse.data.access_token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Ocorreu um erro ao criar a conta.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const Section = ({ title }) => (
+    <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', marginBottom: '0.25rem', marginTop: '1rem' }}>
+      <p style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</p>
+    </div>
+  );
+
   return (
     <div style={{ overflowX: 'hidden', backgroundColor: 'var(--color-background)' }}>
       {/* Header */}
@@ -22,7 +66,7 @@ export default function LandingPage() {
           <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <a href="#funcionalidades" className="mobile-hide" style={{ color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '0.9rem', marginRight: '0.5rem' }}>Funcionalidades</a>
             <Link to="/login" className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Entrar</Link>
-            <Link to="/register" className="btn btn-primary mobile-hide" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Começar Agora</Link>
+            <button onClick={() => setShowRegister(true)} className="btn btn-primary mobile-hide" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Começar Agora</button>
           </nav>
         </div>
       </header>
@@ -81,9 +125,9 @@ export default function LandingPage() {
             </p>
             
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/register" className="btn btn-primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1.1rem', fontWeight: 800, borderRadius: 'var(--radius-lg)' }}>
+              <button onClick={() => setShowRegister(true)} className="btn btn-primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1.1rem', fontWeight: 800, borderRadius: 'var(--radius-lg)' }}>
                 Criar Conta Gratuita <ArrowRight size={20} />
-              </Link>
+              </button>
               <Link to="/login" className="btn btn-secondary" style={{ padding: '1.25rem 2rem', fontSize: '1.1rem', borderRadius: 'var(--radius-lg)', backgroundColor: 'white' }}>
                 Ver Demonstração
               </Link>
@@ -207,9 +251,9 @@ export default function LandingPage() {
               Junte-se a centenas de psicólogos que já profissionalizaram sua gestão com o PsiCore.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/register" style={{ backgroundColor: 'white', color: 'var(--color-primary)', padding: '1.25rem 3rem', borderRadius: 'var(--radius-lg)', fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.75rem', boxShadow: 'var(--shadow-lg)' }}>
+              <button onClick={() => setShowRegister(true)} style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: 'none', cursor: 'pointer', padding: '1.25rem 3rem', borderRadius: 'var(--radius-lg)', fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.75rem', boxShadow: 'var(--shadow-lg)' }}>
                 Criar Conta Gratuita <ArrowRight size={20} />
-              </Link>
+              </button>
             </div>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginTop: '2rem', fontWeight: 500 }}>
               ✓ Sem fidelidade &nbsp; · &nbsp; ✓ Sem cartão de crédito &nbsp; · &nbsp; ✓ Backup diário
@@ -250,6 +294,84 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      {showRegister && (
+        <div className="modal-overlay" style={{ zIndex: 1000 }}>
+          <div className="modal-content" style={{ maxWidth: '700px', padding: '2.5rem' }}>
+            <button 
+              onClick={() => setShowRegister(false)}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Brain size={32} color="var(--color-primary)" />
+                <h2 style={{ color: 'var(--color-primary)', fontSize: '1.75rem', fontWeight: 800 }}>PsiCore</h2>
+              </div>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Crie sua conta</h3>
+              <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Preencha seus dados profissionais para começar</p>
+            </div>
+
+            {error && (
+              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-error)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: 'var(--font-size-sm)' }}>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleRegister}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                <Section title="Dados de Acesso" />
+                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Nome Completo *</label>
+                  <input type="text" className="input-control" required placeholder="Dr. João da Silva" value={form.name} onChange={e => set('name', e.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label>E-mail *</label>
+                  <input type="email" className="input-control" required placeholder="seu@email.com" value={form.email} onChange={e => set('email', e.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label>Senha *</label>
+                  <input type="password" className="input-control" required placeholder="Mínimo 6 caracteres" value={form.password} onChange={e => set('password', e.target.value)} />
+                </div>
+
+                <Section title="Dados Profissionais" />
+                <div className="input-group">
+                  <label>CRP</label>
+                  <input type="text" className="input-control" placeholder="CRP 06/123456" value={form.crp} onChange={e => set('crp', e.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label>Especialidade</label>
+                  <select className="input-control" value={form.specialty} onChange={e => set('specialty', e.target.value)}>
+                    <option value="">Selecione...</option>
+                    <option>Psicanálise</option>
+                    <option>TCC (Terapia Cognitivo-Comportamental)</option>
+                    <option>Gestalt-terapia</option>
+                    <option>Humanismo</option>
+                    <option>Psicologia Positiva</option>
+                    <option>EMDR</option>
+                    <option>DBT</option>
+                    <option>Outra</option>
+                  </select>
+                </div>
+                <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                  <label>Telefone Profissional</label>
+                  <input type="text" className="input-control" placeholder="(00) 00000-0000" value={form.phone} onChange={e => set('phone', maskPhone(e.target.value))} />
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', marginTop: '1.5rem', fontSize: '1rem' }} disabled={loading}>
+                {loading ? 'Criando conta...' : 'Criar Minha Conta no PsiCore'}
+              </button>
+            </form>
+
+            <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+              Já tem uma conta? <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Fazer login</Link>
+            </p>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
@@ -257,6 +379,28 @@ export default function LandingPage() {
         }
         main {
           animation: fadeIn 0.8s ease-out forwards;
+        }
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background-color: rgba(15, 23, 42, 0.5);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+          overflow-y: auto;
+        }
+        @media (max-width: 640px) {
+          .modal-content {
+            padding: 1.5rem !important;
+          }
+          .modal-content form > div {
+            grid-template-columns: 1fr !important;
+          }
+          .modal-content form > div > div {
+            grid-column: span 1 !important;
+          }
         }
       `}</style>
     </div>
