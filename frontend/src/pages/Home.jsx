@@ -6,6 +6,7 @@ import { ptBR } from 'date-fns/locale';
 import api from '../api';
 import AppointmentModal from '../components/AppointmentModal';
 import LoadingScreen from '../components/LoadingScreen';
+import ModalPortal from '../components/ModalPortal';
 
 const STATUS_COLOR = {
   'Confirmada': 'var(--color-success)',
@@ -262,30 +263,86 @@ export default function Home() {
       </div>
 
       {/* Header da Seção de Consultas */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
-          <h3 style={{ fontWeight: 700, fontSize: isMobile ? '1.15rem' : '1.25rem', margin: 0 }}>Próximas Consultas</h3>
-          <div style={{ display: 'flex', backgroundColor: 'var(--color-border)', borderRadius: '99px', padding: '3px', gap: '2px' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        {/* Título centralizado */}
+        <h3 style={{
+          fontWeight: 700,
+          fontSize: isMobile ? '1.2rem' : '1.35rem',
+          textAlign: 'center',
+          color: 'var(--color-text-main)',
+          marginBottom: '1rem',
+          letterSpacing: '-0.01em',
+        }}>
+          Próximas Consultas
+        </h3>
+
+        {/* Controles: toggle + link agenda */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.75rem',
+          flexWrap: 'wrap',
+        }}>
+          {/* Segmented control Hoje / Semana */}
+          <div style={{
+            display: 'flex',
+            backgroundColor: 'var(--color-background)',
+            borderRadius: '99px',
+            padding: '3px',
+            gap: '2px',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.06)',
+          }}>
             {[{ key: 'today', label: 'Hoje' }, { key: 'week', label: 'Semana' }].map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setViewMode(key)}
                 style={{
-                  padding: isMobile ? '0.3rem 0.8rem' : '0.4rem 1.25rem', borderRadius: '99px', border: 'none', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 600, cursor: 'pointer',
-                  backgroundColor: viewMode === key ? 'var(--color-surface)' : 'transparent',
-                  color: viewMode === key ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  boxShadow: viewMode === key ? 'var(--shadow-sm)' : 'none',
-                  transition: 'all 0.2s'
+                  padding: isMobile ? '0.4rem 1.1rem' : '0.45rem 1.5rem',
+                  borderRadius: '99px',
+                  border: 'none',
+                  fontSize: isMobile ? '0.8rem' : '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  backgroundColor: viewMode === key ? 'var(--color-primary)' : 'transparent',
+                  color: viewMode === key ? 'white' : 'var(--color-text-muted)',
+                  boxShadow: viewMode === key ? '0 2px 8px rgba(2,132,199,0.3)' : 'none',
+                  transition: 'all 0.2s',
                 }}
               >
                 {label}
               </button>
             ))}
           </div>
+
+          {/* Divisor vertical */}
+          <div style={{ width: '1px', height: '28px', backgroundColor: 'var(--color-border)' }} />
+
+          {/* Link agenda completa */}
+          <Link
+            to="/dashboard/calendar"
+            style={{
+              color: 'var(--color-primary)',
+              fontSize: isMobile ? '0.8rem' : '0.875rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.2rem',
+              textDecoration: 'none',
+              padding: '0.45rem 1rem',
+              borderRadius: '99px',
+              border: '1px solid rgba(2,132,199,0.25)',
+              backgroundColor: 'rgba(2,132,199,0.04)',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={e => { e.currentTarget.style.backgroundColor = 'rgba(2,132,199,0.1)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+            onMouseOut={e => { e.currentTarget.style.backgroundColor = 'rgba(2,132,199,0.04)'; e.currentTarget.style.borderColor = 'rgba(2,132,199,0.25)'; }}
+          >
+            Agenda completa <ChevronRight size={16} />
+          </Link>
         </div>
-        <Link to="/dashboard/calendar" style={{ color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', alignSelf: isMobile ? 'flex-end' : 'center' }}>
-          Agenda completa <ChevronRight size={18} />
-        </Link>
       </div>
 
       {filtered.length === 0 ? (
@@ -327,12 +384,14 @@ export default function Home() {
       )}
 
       {selectedAppointment && (
-        <AppointmentModal
-          appointment={selectedAppointment}
-          onClose={() => setSelectedAppointment(null)}
-          onSave={handleUpdateAppointment}
-          onDelete={handleDeleteAppointment}
-        />
+        <ModalPortal>
+          <AppointmentModal
+            appointment={selectedAppointment}
+            onClose={() => setSelectedAppointment(null)}
+            onSave={handleUpdateAppointment}
+            onDelete={handleDeleteAppointment}
+          />
+        </ModalPortal>
       )}
     </div>
   );

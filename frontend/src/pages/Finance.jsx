@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import api from '../api';
 import LoadingScreen from '../components/LoadingScreen';
+import ModalPortal from '../components/ModalPortal';
 
 const STATUS_APPT = {
   'Confirmada':           { color: '#0284C7', bg: 'rgba(2,132,199,0.08)' },
@@ -210,7 +211,8 @@ export default function Finance() {
           MODAL: Lista de pagamentos por categoria
       ══════════════════════════════════════════════════════════════════ */}
       {listModal && (
-        <div className="modal-overlay" onClick={() => setListModal(null)}>
+        <ModalPortal>
+          <div className="modal-overlay" onClick={() => setListModal(null)}>
           <div
             className="modal-content"
             onClick={e => e.stopPropagation()}
@@ -291,13 +293,15 @@ export default function Finance() {
             )}
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {/* ══════════════════════════════════════════════════════════════════
           MODAL: Detalhe de um pagamento
       ══════════════════════════════════════════════════════════════════ */}
       {detailAppt && (
-        <div className="modal-overlay" onClick={() => setDetailAppt(null)}>
+        <ModalPortal>
+          <div className="modal-overlay" onClick={() => setDetailAppt(null)}>
           <div
             className="modal-content"
             onClick={e => e.stopPropagation()}
@@ -362,6 +366,7 @@ export default function Finance() {
             </button>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

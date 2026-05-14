@@ -12,6 +12,7 @@ import api from '../api';
 import DateTimePicker from '../components/DateTimePicker';
 import AppointmentModal from '../components/AppointmentModal';
 import LoadingScreen from '../components/LoadingScreen';
+import ModalPortal from '../components/ModalPortal';
 
 const locales = { 'pt-BR': ptBR };
 
@@ -78,11 +79,12 @@ export default function CalendarView() {
 
   useEffect(() => {
     // Auto-open new appointment modal if ?new=1 is in URL
+    // Watches searchParams so it fires even when already on this page
     if (searchParams.get('new') === '1') {
       openNewModal(new Date());
-      setSearchParams({});
+      setSearchParams({}, { replace: true });
     }
-  }, []);
+  }, [searchParams]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -174,22 +176,29 @@ export default function CalendarView() {
     setShowNewModal(true);
   };
 
-  // ── Clique no slot / dia ────────────────────────────────────────────────────
-  const handleSelectSlot = ({ start, slots }) => {
+  // ── Clique num SLOT (desktop: abre modal novo agendamento) ─────────────────
+  const handleSelectSlot = ({ start }) => {
+    if (!isMobile) openNewModal(start);
+  };
+
+  // ── Drill-down: clique num DIA no calendário de MÊS (mobile e desktop) ─────
+  // No react-big-calendar, em Month view, o evento de clique no número do dia
+  // é o onDrillDown — o único que funciona via touch no celular.
+  const handleDrillDown = (date) => {
     if (isMobile) {
-      // No mobile (view mês), clique abre o painel do dia
+      // Abre o painel bottom-sheet com a lista do dia
       const dayEvts = events.filter(e => {
         const d = new Date(e.start);
         return (
-          d.getFullYear() === start.getFullYear() &&
-          d.getMonth() === start.getMonth() &&
-          d.getDate() === start.getDate()
+          d.getFullYear() === date.getFullYear() &&
+          d.getMonth()    === date.getMonth()    &&
+          d.getDate()     === date.getDate()
         );
       });
-      setDayPanelDate(start);
+      setDayPanelDate(date);
       setDayPanelEvents(dayEvts);
     } else {
-      openNewModal(start);
+      openNewModal(date);
     }
   };
 
@@ -247,7 +256,7 @@ export default function CalendarView() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="animate-fade-in">
       {/* ── Cabeçalho ──────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, textAlign: isMobile ? 'center' : 'left' }}>Minha Agenda</h2>
@@ -258,12 +267,12 @@ export default function CalendarView() {
 
       {/* ── BigCalendar ─────────────────────────────────────────────────── */}
       <div style={{
-        flex: 1,
         backgroundColor: 'var(--color-surface)',
         padding: isMobile ? '0.75rem' : '1.25rem',
         borderRadius: 'var(--radius-xl)',
         boxShadow: 'var(--shadow-sm)',
-        height: isMobile ? '520px' : 'calc(100vh - 200px)',
+        /* Altura fixa absoluta: BigCalendar exige altura concreta em TODOS os modos de view */
+        height: isMobile ? '520px' : '680px',
       }}>
         <BigCalendar
           localizer={localizer}
@@ -276,6 +285,8 @@ export default function CalendarView() {
           onView={handleViewChange}
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
+          onDrillDown={handleDrillDown}
+          drilldownView={null}
           selectable
           views={isMobile ? [Views.MONTH] : [Views.MONTH, Views.WEEK, Views.DAY]}
           messages={messages}
@@ -393,8 +404,9 @@ export default function CalendarView() {
 
       {/* ── Modal: Novo Agendamento ─────────────────────────────────────── */}
       {showNewModal && (
-        <div className="modal-overlay" onClick={() => setShowNewModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <ModalPortal>
+          <div className="modal-overlay" onClick={() => setShowNewModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(2,132,199,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -480,15 +492,18 @@ export default function CalendarView() {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {selectedEvent && (
-        <AppointmentModal
-          appointment={selectedEvent}
-          onClose={handleCloseModal}
-          onSave={handleSaveModal}
-          onDelete={handleDeleteModal}
-        />
+        <ModalPortal>
+          <AppointmentModal
+            appointment={selectedEvent}
+            onClose={handleCloseModal}
+            onSave={handleSaveModal}
+            onDelete={handleDeleteModal}
+          />
+        </ModalPortal>
       )}
     </div>
   );
