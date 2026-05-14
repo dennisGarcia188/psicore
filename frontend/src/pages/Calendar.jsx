@@ -7,7 +7,7 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import ptBR from 'date-fns/locale/pt-BR';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Plus, X, CalendarClock, CalendarPlus, Users } from 'lucide-react';
+import { Plus, X, CalendarClock, CalendarPlus, Users, Clock, ChevronRight, CheckCircle } from 'lucide-react';
 import api from '../api';
 import DateTimePicker from '../components/DateTimePicker';
 import AppointmentModal from '../components/AppointmentModal';
@@ -30,34 +30,21 @@ const STATUS_COLORS = {
   'Cancelada': '#EF4444',
 };
 
+const STATUS_BG = {
+  'Confirmada': 'rgba(2,132,199,0.08)',
+  'Aguardando Confirmação': 'rgba(245,158,11,0.08)',
+  'Realizada': 'rgba(16,185,129,0.08)',
+  'Cancelada': 'rgba(239,68,68,0.08)',
+};
+
 export default function CalendarView() {
   const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [currentView, setCurrentView] = useState(window.innerWidth <= 768 ? Views.DAY : Views.WEEK);
+  // Mobile sempre usa MONTH; desktop começa em WEEK
+  const [currentView, setCurrentView] = useState(window.innerWidth <= 768 ? Views.MONTH : Views.WEEK);
   const [searchParams, setSearchParams] = useSearchParams();
-
-  useEffect(() => {
-    // Auto-open new appointment modal if ?new=1 is in URL
-    if (searchParams.get('new') === '1') {
-      openNewModal(new Date());
-      setSearchParams({});
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
-      if (mobile && currentView === Views.WEEK) {
-        setCurrentView(Views.DAY);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [currentView]);
 
   // Modal de detalhes do agendamento
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -74,13 +61,33 @@ export default function CalendarView() {
   const [submitting, setSubmitting] = useState(false);
   const [newError, setNewError] = useState('');
 
+  // Painel lateral de atendimentos do dia (mobile)
+  const [dayPanelDate, setDayPanelDate] = useState(null);
+  const [dayPanelEvents, setDayPanelEvents] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) setCurrentView(Views.MONTH);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // Auto-open new appointment modal if ?new=1 is in URL
+    if (searchParams.get('new') === '1') {
+      openNewModal(new Date());
+      setSearchParams({});
+    }
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      await Promise.all([
-        fetchAllAppointments(),
-        fetchPatients()
-      ]);
+      await Promise.all([fetchAllAppointments(), fetchPatients()]);
     } catch (err) {
       console.error('Erro ao buscar dados da agenda', err);
     } finally {
@@ -99,7 +106,6 @@ export default function CalendarView() {
 
   const fetchAllAppointments = async () => {
     try {
-      // Optimized fetching
       const res = await api.get('/appointments/');
       const mapped = res.data.map(a => {
         const startDate = new Date(a.date_time);
@@ -119,10 +125,17 @@ export default function CalendarView() {
   };
 
   const handleNavigate = useCallback((newDate) => setCurrentDate(newDate), []);
-  const handleViewChange = useCallback((newView) => setCurrentView(newView), []);
+  const handleViewChange = useCallback((newView) => {
+    if (!isMobile) setCurrentView(newView);
+  }, [isMobile]);
 
   const handleSelectEvent = (event) => {
-    setSelectedEvent(event);
+    if (isMobile) {
+      // No mobile, clicar no evento abre o detalhe via painel
+      setSelectedEvent(event);
+    } else {
+      setSelectedEvent(event);
+    }
   };
 
   const handleCloseModal = () => setSelectedEvent(null);
@@ -151,25 +164,40 @@ export default function CalendarView() {
 
   // ── Novo Agendamento ────────────────────────────────────────────────────────
   const openNewModal = (selectedDate = null) => {
-    setNewForm({ 
-      patient_id: '', 
-      date_time: selectedDate || null, 
-      fee: '', 
-      status: 'Aguardando Confirmação' 
+    setNewForm({
+      patient_id: '',
+      date_time: selectedDate || null,
+      fee: '',
+      status: 'Aguardando Confirmação',
     });
     setNewError('');
     setShowNewModal(true);
   };
 
-  const handleSelectSlot = ({ start }) => {
-    openNewModal(start);
+  // ── Clique no slot / dia ────────────────────────────────────────────────────
+  const handleSelectSlot = ({ start, slots }) => {
+    if (isMobile) {
+      // No mobile (view mês), clique abre o painel do dia
+      const dayEvts = events.filter(e => {
+        const d = new Date(e.start);
+        return (
+          d.getFullYear() === start.getFullYear() &&
+          d.getMonth() === start.getMonth() &&
+          d.getDate() === start.getDate()
+        );
+      });
+      setDayPanelDate(start);
+      setDayPanelEvents(dayEvts);
+    } else {
+      openNewModal(start);
+    }
   };
 
   const handleSubmitNew = async (e) => {
     e.preventDefault();
     setNewError('');
     if (!newForm.patient_id) { setNewError('Selecione um paciente.'); return; }
-    if (!newForm.date_time)  { setNewError('Selecione a data e horário.'); return; }
+    if (!newForm.date_time) { setNewError('Selecione a data e horário.'); return; }
 
     setSubmitting(true);
     try {
@@ -180,6 +208,7 @@ export default function CalendarView() {
         status: newForm.status,
       });
       setShowNewModal(false);
+      setDayPanelDate(null);
       await fetchAllAppointments();
     } catch (err) {
       setNewError(err.response?.data?.detail || 'Erro ao criar agendamento.');
@@ -212,29 +241,43 @@ export default function CalendarView() {
 
   if (loading) return <LoadingScreen />;
 
+  const formatDayPanelDate = (d) => {
+    if (!d) return '';
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+  };
+
   return (
-    <div className="animate-fade-in" style={{ height: isMobile ? '700px' : 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'center' : 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* ── Cabeçalho ──────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 700, textAlign: isMobile ? 'center' : 'left' }}>Minha Agenda</h2>
-        <button onClick={openNewModal} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
+        <button onClick={() => openNewModal()} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
           <Plus size={18} /> Novo Agendamento
         </button>
       </div>
 
-      <div style={{ flex: 1, backgroundColor: 'var(--color-surface)', padding: '1.25rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', minHeight: 0 }}>
+      {/* ── BigCalendar ─────────────────────────────────────────────────── */}
+      <div style={{
+        flex: 1,
+        backgroundColor: 'var(--color-surface)',
+        padding: isMobile ? '0.75rem' : '1.25rem',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: 'var(--shadow-sm)',
+        height: isMobile ? '520px' : 'calc(100vh - 200px)',
+      }}>
         <BigCalendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
           date={currentDate}
-          view={currentView}
+          view={isMobile ? Views.MONTH : currentView}
           onNavigate={handleNavigate}
           onView={handleViewChange}
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
           selectable
-          views={[Views.MONTH, Views.WEEK, Views.DAY]}
+          views={isMobile ? [Views.MONTH] : [Views.MONTH, Views.WEEK, Views.DAY]}
           messages={messages}
           culture="pt-BR"
           eventPropGetter={eventStyleGetter}
@@ -243,7 +286,112 @@ export default function CalendarView() {
         />
       </div>
 
-      {/* ── Modal: Novo Agendamento ─────────────────────────────────────────── */}
+      {/* ── Painel de Atendimentos do Dia (Mobile) ──────────────────────── */}
+      {isMobile && dayPanelDate && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          backgroundColor: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end',
+        }} onClick={() => setDayPanelDate(null)}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              backgroundColor: 'var(--color-surface)',
+              borderRadius: '20px 20px 0 0',
+              padding: '1.5rem 1.25rem 5rem',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+            }}
+          >
+            {/* Handle bar */}
+            <div style={{ width: '40px', height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', margin: '-0.5rem auto 1.25rem' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text-main)', textTransform: 'capitalize' }}>
+                  {formatDayPanelDate(dayPanelDate)}
+                </h3>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                  {dayPanelEvents.length > 0 ? `${dayPanelEvents.length} atendimento(s)` : 'Nenhum atendimento'}
+                </p>
+              </div>
+              <button
+                onClick={() => setDayPanelDate(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* Lista de eventos do dia */}
+            {dayPanelEvents.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                {dayPanelEvents
+                  .sort((a, b) => new Date(a.start) - new Date(b.start))
+                  .map(evt => (
+                    <div
+                      key={evt.id}
+                      onClick={() => { setSelectedEvent(evt); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '1rem',
+                        backgroundColor: STATUS_BG[evt.resource?.status] || 'rgba(2,132,199,0.08)',
+                        padding: '1rem',
+                        borderRadius: '14px',
+                        borderLeft: `4px solid ${STATUS_COLORS[evt.resource?.status] || '#0284C7'}`,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{
+                        width: '44px', height: '44px', borderRadius: '12px',
+                        backgroundColor: STATUS_COLORS[evt.resource?.status] || '#0284C7',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'white', fontWeight: 800, fontSize: '1.1rem', flexShrink: 0,
+                      }}>
+                        {evt.title?.[0]?.toUpperCase() || '?'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontWeight: 700, color: 'var(--color-text-main)', marginBottom: '0.2rem' }}>{evt.title}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
+                          <Clock size={12} />
+                          <span>{new Date(evt.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span style={{
+                            marginLeft: '0.5rem', fontSize: '0.7rem', fontWeight: 700,
+                            color: STATUS_COLORS[evt.resource?.status],
+                            backgroundColor: STATUS_BG[evt.resource?.status],
+                            padding: '0.1rem 0.5rem', borderRadius: '99px',
+                          }}>
+                            {evt.resource?.status}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} color="var(--color-text-muted)" />
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--color-text-muted)' }}>
+                <CalendarPlus size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                <p style={{ fontSize: '0.9rem' }}>Nenhum atendimento neste dia.</p>
+              </div>
+            )}
+
+            {/* Botão de novo agendamento para este dia */}
+            <button
+              onClick={() => {
+                setDayPanelDate(null);
+                openNewModal(dayPanelDate);
+              }}
+              className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
+            >
+              <Plus size={18} /> Agendar neste dia
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Novo Agendamento ─────────────────────────────────────── */}
       {showNewModal && (
         <div className="modal-overlay" onClick={() => setShowNewModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
