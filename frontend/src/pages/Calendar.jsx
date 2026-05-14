@@ -140,10 +140,19 @@ export default function CalendarView() {
   };
 
   // ── Novo Agendamento ────────────────────────────────────────────────────────
-  const openNewModal = () => {
-    setNewForm({ patient_id: '', date_time: null, fee: '', status: 'Aguardando Confirmação' });
+  const openNewModal = (selectedDate = null) => {
+    setNewForm({ 
+      patient_id: '', 
+      date_time: selectedDate || null, 
+      fee: '', 
+      status: 'Aguardando Confirmação' 
+    });
     setNewError('');
     setShowNewModal(true);
+  };
+
+  const handleSelectSlot = ({ start }) => {
+    openNewModal(start);
   };
 
   const handleSubmitNew = async (e) => {
@@ -213,6 +222,8 @@ export default function CalendarView() {
           onNavigate={handleNavigate}
           onView={handleViewChange}
           onSelectEvent={handleSelectEvent}
+          onSelectSlot={handleSelectSlot}
+          selectable
           views={[Views.MONTH, Views.WEEK, Views.DAY]}
           messages={messages}
           culture="pt-BR"
