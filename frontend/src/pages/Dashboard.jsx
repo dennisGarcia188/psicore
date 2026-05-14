@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -216,6 +217,81 @@ export default function Dashboard() {
       </main>
 
       <Footer onContactClick={() => setShowSupportModal(true)} />
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <>
+          {/* Quick Action Button */}
+          <div style={{ position: 'fixed', bottom: '85px', right: '20px', zIndex: 900 }}>
+            <button 
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              style={{ 
+                width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', 
+                color: 'white', border: 'none', boxShadow: '0 4px 12px rgba(2,132,199,0.4)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                transition: 'transform 0.2s ease'
+              }}
+            >
+              <Plus size={28} style={{ transform: showQuickActions ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+            </button>
+
+            {/* Quick Action Menu */}
+            {showQuickActions && (
+              <div className="animate-fade-in" style={{ position: 'absolute', bottom: '70px', right: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end', width: '200px' }}>
+                <Link to="/dashboard/calendar" onClick={() => setShowQuickActions(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textDecoration: 'none', color: 'var(--color-text-main)', fontWeight: 600, fontSize: '0.875rem', width: 'fit-content' }}>
+                   Nova Consulta <CalendarIcon size={18} color="var(--color-primary)" />
+                </Link>
+                <Link to="/dashboard/patients" onClick={() => setShowQuickActions(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textDecoration: 'none', color: 'var(--color-text-main)', fontWeight: 600, fontSize: '0.875rem', width: 'fit-content' }}>
+                   Novo Paciente <Users size={18} color="var(--color-primary)" />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <nav style={{ 
+            position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px', 
+            backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', 
+            borderTop: '1px solid var(--color-border)', display: 'flex', 
+            justifyContent: 'space-around', alignItems: 'center', zIndex: 1000,
+            paddingBottom: 'env(safe-area-inset-bottom)'
+          }}>
+            {[
+              { to: "/dashboard", icon: LayoutDashboard, label: "Início" },
+              { to: "/dashboard/patients", icon: Users, label: "Pacientes" },
+              { to: "/dashboard/calendar", icon: CalendarIcon, label: "Agenda" },
+              { to: "/dashboard/finance", icon: DollarSign, label: "Finanças" },
+              { onClick: () => setIsMenuOpen(true), icon: Menu, label: "Mais" },
+            ].map((item, idx) => (
+              item.to ? (
+                <Link 
+                  key={idx}
+                  to={item.to}
+                  style={{ 
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                    color: isActive(item.to) ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                    textDecoration: 'none', flex: 1
+                  }}
+                >
+                  <item.icon size={22} strokeWidth={isActive(item.to) ? 2.5 : 2} />
+                  <span style={{ fontSize: '0.65rem', fontWeight: isActive(item.to) ? 700 : 500 }}>{item.label}</span>
+                </Link>
+              ) : (
+                <button 
+                  key={idx}
+                  onClick={item.onClick}
+                  style={{ 
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                    color: 'var(--color-text-muted)', background: 'none', border: 'none', flex: 1
+                  }}
+                >
+                  <item.icon size={22} />
+                  <span style={{ fontSize: '0.65rem', fontWeight: 500 }}>{item.label}</span>
+                </button>
+              )
+            ))}
+          </nav>
+        </>
+      )}
 
       {showSupportModal && <SupportModal onClose={() => setShowSupportModal(false)} />}
     </div>

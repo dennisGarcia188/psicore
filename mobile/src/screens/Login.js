@@ -18,13 +18,12 @@ export default function Login({ navigation }) {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('username', email);
-      formData.append('password', password);
+      // FastAPI espera x-www-form-urlencoded por padrão para o OAuth2
+      const body = `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
 
-      const response = await api.post('/auth/login', formData, {
+      const response = await api.post('/auth/login', body, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'application/x-www-form-urlencoded'
         }
       });
       

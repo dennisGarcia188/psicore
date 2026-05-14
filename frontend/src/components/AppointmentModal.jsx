@@ -71,8 +71,24 @@ export default function AppointmentModal({
   if (!appointment) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose} style={{ alignItems: isMobile ? 'flex-end' : 'center' }}>
+      <div 
+        className={`modal-content ${isMobile ? 'animate-slide-up' : 'animate-fade-in'}`} 
+        onClick={e => e.stopPropagation()}
+        style={{ 
+          maxWidth: isMobile ? '100%' : '600px', 
+          width: '100%',
+          borderBottomLeftRadius: isMobile ? 0 : 'var(--radius-xl)',
+          borderBottomRightRadius: isMobile ? 0 : 'var(--radius-xl)',
+          maxHeight: isMobile ? '90vh' : 'auto',
+          overflowY: 'auto',
+          padding: isMobile ? '1.5rem 1.25rem 2.5rem' : '2rem',
+          position: 'relative'
+        }}
+      >
+        {isMobile && (
+          <div style={{ width: '40px', height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', margin: '-0.5rem auto 1.5rem' }} />
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
           <div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Detalhes da Consulta</h3>

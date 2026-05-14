@@ -188,10 +188,9 @@ input[type="date"].input-control::-webkit-calendar-picker-indicator:hover {
   background-color: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(4px);
   z-index: 9999;
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* padding-top maior para não sobrepor a topbar (altura ~70px + folga) */
-  padding: 5rem 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-content {
@@ -332,4 +331,13 @@ input[type="date"].input-control::-webkit-calendar-picker-indicator:hover {
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

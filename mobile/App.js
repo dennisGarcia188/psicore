@@ -15,6 +15,8 @@ import NewAppointment from './src/screens/NewAppointment';
 import ClinicData from './src/screens/ClinicData';
 import AppointmentDetails from './src/screens/AppointmentDetails';
 import PatientDetails from './src/screens/PatientDetails';
+import Finance from './src/screens/Finance';
+import Reports from './src/screens/Reports';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,6 +29,7 @@ function MainTabs() {
         tabBarInactiveTintColor: '#64748B',
         headerStyle: { backgroundColor: '#FFFFFF' },
         headerTitleStyle: { fontWeight: '700', color: '#0F172A' },
+        headerTitleAlign: 'center',
       }}
     >
       <Tab.Screen 
@@ -120,6 +123,16 @@ export default function App() {
         <Stack.Screen 
           name="PatientDetails" 
           component={PatientDetails} 
+          options={{ presentation: 'modal', headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Finance" 
+          component={Finance} 
+          options={{ presentation: 'modal', headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Reports" 
+          component={Reports} 
           options={{ presentation: 'modal', headerShown: false }} 
         />
       </Stack.Navigator>

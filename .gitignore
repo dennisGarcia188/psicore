@@ -18,3 +18,10 @@ __pycache__/
 # Sistema Operacional
 .DS_Store
 Thumbs.db
+
+# Logs e Scripts de Manutenção
+*.log
+check_users.py
+final_reset.py
+reset_passwords.py
+test_login.py

@@ -11,6 +11,14 @@ export default function ConfirmModal({
   cancelText = "Cancelar",
   type = "danger" // danger | warning | info
 }) {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (!isOpen) return null;
 
   const colors = {
@@ -34,10 +42,17 @@ export default function ConfirmModal({
   const style = colors[type] || colors.danger;
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 3000 }} onClick={onClose}>
+    <div className="modal-overlay" style={{ zIndex: 3000, alignItems: isMobile ? 'flex-end' : 'center' }} onClick={onClose}>
       <div 
-        className="modal-content animate-fade-in" 
-        style={{ maxWidth: '400px', padding: '2rem', textAlign: 'center' }}
+        className={`modal-content ${isMobile ? 'animate-slide-up' : 'animate-fade-in'}`} 
+        style={{ 
+          maxWidth: isMobile ? '100%' : '400px', 
+          padding: isMobile ? '1.5rem 1.25rem 2.5rem' : '2rem', 
+          textAlign: 'center',
+          width: '100%',
+          borderBottomLeftRadius: isMobile ? 0 : 'var(--radius-xl)',
+          borderBottomRightRadius: isMobile ? 0 : 'var(--radius-xl)',
+        }}
         onClick={e => e.stopPropagation()}
       >
         <button 

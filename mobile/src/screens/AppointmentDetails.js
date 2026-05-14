@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Trash2, Save, Calendar as CalendarIcon, Clock, Edit3 } from 'lucide-react-native';
+import { ChevronLeft, Trash2, Save, Calendar as CalendarIcon, Clock, Edit3, CheckCircle, DollarSign } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../api';
 
@@ -22,6 +22,8 @@ export default function AppointmentDetails({ route, navigation }) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [status, setStatus] = useState(appointment.status);
   const [notes, setNotes] = useState(appointment.notes || '');
+  const [fee, setFee] = useState(appointment.fee?.toString() || '');
+  const [isPaid, setIsPaid] = useState(appointment.is_paid || false);
   
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -37,7 +39,9 @@ export default function AppointmentDetails({ route, navigation }) {
         date_time: localISOTime,
         status: status,
         notes: notes,
-        patient_id: appointment.patient_id
+        patient_id: appointment.patient_id,
+        fee: parseFloat(fee) || 0,
+        is_paid: isPaid
       };
 
       await api.put(`/appointments/${appointment.id}`, payload);
@@ -185,6 +189,30 @@ export default function AppointmentDetails({ route, navigation }) {
                     </Text>
                   </TouchableOpacity>
                 ))}
+                <Text style={styles.sectionTitle}>Financeiro</Text>
+                <View style={styles.financeContainer}>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Valor da Sessão (R$)</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="0,00"
+                      keyboardType="numeric"
+                      value={fee}
+                      onChangeText={setFee}
+                    />
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.payBtn, isPaid && styles.payBtnActive]} 
+                    onPress={() => setIsPaid(!isPaid)}
+                  >
+                    <View style={[styles.payCircle, isPaid && styles.payCircleActive]}>
+                      {isPaid && <CheckCircle size={14} color="#FFF" />}
+                    </View>
+                    <Text style={[styles.payBtnText, isPaid && styles.payBtnTextActive]}>
+                      {isPaid ? 'Pagamento Realizado' : 'Marcar como Pago'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </>
           )}
@@ -379,4 +407,60 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.5, shadowOpacity: 0 },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+  
+  // Finance Styles
+  financeContainer: { 
+    backgroundColor: '#FFFFFF', 
+    padding: 20, 
+    borderRadius: 24, 
+    borderWidth: 1, 
+    borderColor: '#F1F5F9',
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  inputGroup: { marginBottom: 16 },
+  inputLabel: { fontSize: 13, fontWeight: '700', color: '#64748B', marginBottom: 8, textTransform: 'uppercase' },
+  input: { 
+    backgroundColor: '#F8FAFC', 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    borderRadius: 12, 
+    padding: 12, 
+    fontSize: 16, 
+    color: '#0F172A',
+    fontWeight: '700'
+  },
+  payBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 12,
+  },
+  payBtnActive: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#16A34A',
+  },
+  payCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payCircleActive: {
+    backgroundColor: '#16A34A',
+    borderColor: '#16A34A',
+  },
+  payBtnText: { fontSize: 15, fontWeight: '600', color: '#64748B' },
+  payBtnTextActive: { color: '#16A34A', fontWeight: '800' },
 });

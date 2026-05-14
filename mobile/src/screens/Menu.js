@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, LogOut, ChevronRight, Settings, Building2 } from 'lucide-react-native';
+import { User, LogOut, ChevronRight, Settings, Building2, DollarSign, BarChart2 } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../api';
 import ScreenHeader from '../components/ScreenHeader';
@@ -81,6 +81,26 @@ export default function Menu({ navigation }) {
               <Building2 size={20} color="#0284C7" />
             </View>
             <Text style={styles.menuText}>Dados do Consultório</Text>
+            <ChevronRight size={20} color="#CBD5E1" />
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Finance')}>
+            <View style={[styles.menuIconBox, { backgroundColor: '#F0FDF4' }]}>
+              <DollarSign size={20} color="#16A34A" />
+            </View>
+            <Text style={styles.menuText}>Controle Financeiro</Text>
+            <ChevronRight size={20} color="#CBD5E1" />
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Reports')}>
+            <View style={[styles.menuIconBox, { backgroundColor: '#FDF2F8' }]}>
+              <BarChart2 size={20} color="#DB2777" />
+            </View>
+            <Text style={styles.menuText}>Relatórios e Estatísticas</Text>
             <ChevronRight size={20} color="#CBD5E1" />
           </TouchableOpacity>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Platform, Modal, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Calendar as CalendarIcon, Clock, User, ChevronDown, Search, X } from 'lucide-react-native';
+import { ChevronLeft, Calendar as CalendarIcon, Clock, User, ChevronDown, Search, X, CheckCircle } from 'lucide-react-native';
 import api from '../api';
 
 const STATUS_COLOR = {
@@ -22,6 +22,8 @@ export default function NewAppointment({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [status, setStatus] = useState('Confirmada');
+  const [fee, setFee] = useState('');
+  const [isPaid, setIsPaid] = useState(false);
   
   const [loadingPatients, setLoadingPatients] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,7 +60,9 @@ export default function NewAppointment({ navigation }) {
       const payload = {
         patient_id: selectedPatientId,
         date_time: localISOTime,
-        status: status
+        status: status,
+        fee: parseFloat(fee) || 0,
+        is_paid: isPaid
       };
 
       await api.post('/appointments/', payload);
@@ -147,25 +151,29 @@ export default function NewAppointment({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>Status</Text>
-        <View style={styles.statusGrid}>
-          {STATUS_OPTIONS.map(opt => (
-            <TouchableOpacity 
-              key={opt}
-              style={[
-                styles.statusOptionBtn, 
-                status === opt && { borderColor: STATUS_COLOR[opt], backgroundColor: STATUS_COLOR[opt] + '10' }
-              ]}
-              onPress={() => setStatus(opt)}
-            >
-              <Text style={[
-                styles.statusOptionText, 
-                status === opt && { color: STATUS_COLOR[opt], fontWeight: '800' }
-              ]}>
-                {opt}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <Text style={styles.sectionTitle}>Financeiro</Text>
+        <View style={styles.financeContainer}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Valor da Sessão (R$)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="0,00"
+              keyboardType="numeric"
+              value={fee}
+              onChangeText={setFee}
+            />
+          </View>
+          <TouchableOpacity 
+            style={[styles.payBtn, isPaid && styles.payBtnActive]} 
+            onPress={() => setIsPaid(!isPaid)}
+          >
+            <View style={[styles.payCircle, isPaid && styles.payCircleActive]}>
+              {isPaid && <CheckCircle size={14} color="#FFF" />}
+            </View>
+            <Text style={[styles.payBtnText, isPaid && styles.payBtnTextActive]}>
+              {isPaid ? 'Pagamento Realizado' : 'Marcar como Pago'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -359,4 +367,60 @@ const styles = StyleSheet.create({
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0284C7' },
   patientName: { fontSize: 16, color: '#334155', fontWeight: '600' },
   patientNameActive: { color: '#0F172A', fontWeight: '700' },
+  
+  // Finance Styles
+  financeContainer: { 
+    backgroundColor: '#FFFFFF', 
+    padding: 20, 
+    borderRadius: 24, 
+    borderWidth: 1, 
+    borderColor: '#F1F5F9',
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  inputGroup: { marginBottom: 16 },
+  inputLabel: { fontSize: 13, fontWeight: '700', color: '#64748B', marginBottom: 8, textTransform: 'uppercase' },
+  input: { 
+    backgroundColor: '#F8FAFC', 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    borderRadius: 12, 
+    padding: 12, 
+    fontSize: 16, 
+    color: '#0F172A',
+    fontWeight: '700'
+  },
+  payBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 12,
+  },
+  payBtnActive: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#16A34A',
+  },
+  payCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payCircleActive: {
+    backgroundColor: '#16A34A',
+    borderColor: '#16A34A',
+  },
+  payBtnText: { fontSize: 15, fontWeight: '600', color: '#64748B' },
+  payBtnTextActive: { color: '#16A34A', fontWeight: '800' },
 });

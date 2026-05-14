@@ -243,28 +243,28 @@ export default function Home() {
       )}
 
       {/* Cards de Estatísticas */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: isMobile ? '0.75rem' : '1.5rem', marginBottom: '2.5rem' }}>
         {[
           { title: isMobile ? 'Confirmadas' : 'Consultas Confirmadas', value: stats.confirmed, icon: CheckCircle, color: 'var(--color-success)', bg: 'rgba(16,185,129,0.1)' },
-          { title: isMobile ? 'Pendentes' : 'Aguardando Confirmação', value: stats.pending, icon: Clock, color: 'var(--color-warning)', bg: 'rgba(245,158,11,0.1)' },
-          { title: isMobile ? 'Pacientes' : 'Total de Pacientes', value: stats.totalPatients, icon: Users, color: 'var(--color-primary)', bg: 'rgba(2,132,199,0.1)' },
-        ].map(({ title, value, icon: Icon, color, bg }) => (
-          <div key={title} style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1.25rem' : '1.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: isMobile ? '1rem' : '1.5rem' }}>
-            <div style={{ width: isMobile ? '48px' : '56px', height: isMobile ? '48px' : '56px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Icon color={color} size={isMobile ? 24 : 28} />
+          { title: isMobile ? 'Pendentes' : 'Aguardando', value: stats.pending, icon: Clock, color: 'var(--color-warning)', bg: 'rgba(245,158,11,0.1)' },
+          { title: isMobile ? 'Pacientes' : 'Total de Pacientes', value: stats.totalPatients, icon: Users, color: 'var(--color-primary)', bg: 'rgba(2,132,199,0.1)', span: isMobile ? 'span 2' : 'span 1' },
+        ].map(({ title, value, icon: Icon, color, bg, span }) => (
+          <div key={title} style={{ gridColumn: span || 'auto', backgroundColor: 'var(--color-surface)', padding: isMobile ? '1rem' : '1.5rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1.5rem', border: '1px solid var(--color-border)' }}>
+            <div style={{ width: isMobile ? '40px' : '56px', height: isMobile ? '40px' : '56px', borderRadius: '50%', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon color={color} size={isMobile ? 20 : 28} />
             </div>
             <div>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{title}</p>
-              <h3 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>{value}</h3>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{title}</p>
+              <h3 style={{ fontSize: isMobile ? '1.25rem' : '2rem', fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>{value}</h3>
             </div>
           </div>
         ))}
       </div>
 
       {/* Header da Seção de Consultas */}
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
-          <h3 style={{ fontWeight: 700, fontSize: isMobile ? '1.15rem' : '1.25rem', margin: 0 }}>Próximas</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
+          <h3 style={{ fontWeight: 700, fontSize: isMobile ? '1.15rem' : '1.25rem', margin: 0 }}>Próximas Consultas</h3>
           <div style={{ display: 'flex', backgroundColor: 'var(--color-border)', borderRadius: '99px', padding: '3px', gap: '2px' }}>
             {[{ key: 'today', label: 'Hoje' }, { key: 'week', label: 'Semana' }].map(({ key, label }) => (
               <button
