@@ -17,6 +17,7 @@ import AppointmentDetails from './src/screens/AppointmentDetails';
 import PatientDetails from './src/screens/PatientDetails';
 import Finance from './src/screens/Finance';
 import Reports from './src/screens/Reports';
+import Onboarding from './src/screens/Onboarding';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -74,8 +75,12 @@ export default function App() {
 
   const checkToken = async () => {
     try {
+      const viewedOnboarding = await AsyncStorage.getItem('@viewedOnboarding');
       const token = await AsyncStorage.getItem('token');
-      if (token) {
+      
+      if (!viewedOnboarding) {
+        setInitialRoute('Onboarding');
+      } else if (token) {
         setInitialRoute('MainApp');
       } else {
         setInitialRoute('Login');
@@ -134,6 +139,11 @@ export default function App() {
           name="Reports" 
           component={Reports} 
           options={{ presentation: 'modal', headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Onboarding" 
+          component={Onboarding} 
+          options={{ headerShown: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>

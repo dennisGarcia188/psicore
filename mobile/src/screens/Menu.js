@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, LogOut, ChevronRight, Settings, Building2, DollarSign, BarChart2 } from 'lucide-react-native';
+import { User, LogOut, ChevronRight, Settings, Building2, DollarSign, BarChart2, HelpCircle } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../api';
 import ScreenHeader from '../components/ScreenHeader';
@@ -101,6 +101,19 @@ export default function Menu({ navigation }) {
               <BarChart2 size={20} color="#DB2777" />
             </View>
             <Text style={styles.menuText}>Relatórios e Estatísticas</Text>
+            <ChevronRight size={20} color="#CBD5E1" />
+          </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.menuItem} onPress={async () => {
+            await AsyncStorage.removeItem('@viewedOnboarding');
+            navigation.replace('Onboarding');
+          }}>
+            <View style={[styles.menuIconBox, { backgroundColor: '#F5F3FF' }]}>
+              <HelpCircle size={20} color="#7C3AED" />
+            </View>
+            <Text style={styles.menuText}>Rever Introdução</Text>
             <ChevronRight size={20} color="#CBD5E1" />
           </TouchableOpacity>
 
