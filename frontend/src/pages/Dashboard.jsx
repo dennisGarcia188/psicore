@@ -21,6 +21,8 @@ export default function Dashboard() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showNewPatientModal, setShowNewPatientModal] = useState(false);
+  const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -68,7 +70,7 @@ export default function Dashboard() {
         borderBottom: '1px solid var(--color-border)', 
         position: 'sticky', 
         top: 0, 
-        zIndex: 100,
+        zIndex: 50,
         width: '100%'
       }}>
         <div className="container" style={{ 
@@ -238,12 +240,18 @@ export default function Dashboard() {
             {/* Quick Action Menu */}
             {showQuickActions && (
               <div className="animate-fade-in" style={{ position: 'absolute', bottom: '70px', right: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end', width: '200px' }}>
-                <Link to="/dashboard/calendar" onClick={() => setShowQuickActions(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textDecoration: 'none', color: 'var(--color-text-main)', fontWeight: 600, fontSize: '0.875rem', width: 'fit-content' }}>
+                <button 
+                  onClick={() => { setShowQuickActions(false); navigate('/dashboard/calendar?new=1'); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: 'none', color: 'var(--color-text-main)', fontWeight: 600, fontSize: '0.875rem', width: 'fit-content', cursor: 'pointer', fontFamily: 'inherit' }}
+                >
                    Nova Consulta <CalendarIcon size={18} color="var(--color-primary)" />
-                </Link>
-                <Link to="/dashboard/patients" onClick={() => setShowQuickActions(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textDecoration: 'none', color: 'var(--color-text-main)', fontWeight: 600, fontSize: '0.875rem', width: 'fit-content' }}>
+                </button>
+                <button 
+                  onClick={() => { setShowQuickActions(false); navigate('/dashboard/patients?new=1'); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: 'none', color: 'var(--color-text-main)', fontWeight: 600, fontSize: '0.875rem', width: 'fit-content', cursor: 'pointer', fontFamily: 'inherit' }}
+                >
                    Novo Paciente <Users size={18} color="var(--color-primary)" />
-                </Link>
+                </button>
               </div>
             )}
           </div>

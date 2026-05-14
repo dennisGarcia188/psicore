@@ -41,35 +41,6 @@ export default function DateTimePicker({ value, onChange, placeholder = 'Selecio
 
   const handleOpen = () => {
     if (open) { setOpen(false); return; }
-    if (!inputRef.current) return;
-
-    const rect = inputRef.current.getBoundingClientRect();
-    const MARGIN = 12;
-    const WIDTH = 300;
-
-    // Espaço abaixo e acima
-    const spaceBelow = window.innerHeight - rect.bottom - MARGIN;
-    const spaceAbove = rect.top - MARGIN;
-
-    // Escolhe direção com mais espaço
-    const openUp = spaceAbove > spaceBelow;
-    const availH = Math.max(openUp ? spaceAbove : spaceBelow, 200);
-
-    // Posição horizontal (não sair da tela)
-    let left = rect.left;
-    if (left + WIDTH > window.innerWidth - MARGIN) {
-      left = window.innerWidth - WIDTH - MARGIN;
-    }
-
-    setPos({
-      left,
-      width: WIDTH,
-      maxHeight: Math.min(availH, 420),
-      ...(openUp
-        ? { bottom: window.innerHeight - rect.top + 4, top: 'auto' }
-        : { top: rect.bottom + 4, bottom: 'auto' }
-      ),
-    });
     setOpen(true);
   };
 
@@ -122,12 +93,12 @@ export default function DateTimePicker({ value, onChange, placeholder = 'Selecio
           data-dtpicker="true"
           onClick={(e) => e.stopPropagation()}
           style={{
-            position: 'fixed',
-            top:    pos.top    !== 'auto' ? pos.top    : undefined,
-            bottom: pos.bottom !== 'auto' ? pos.bottom : undefined,
-            left:   pos.left,
-            width:  pos.width,
-            maxHeight: pos.maxHeight,
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            marginTop: '4px',
+            maxHeight: '420px',
             overflowY: 'auto',
             zIndex: 100000,
             backgroundColor: 'var(--color-surface)',

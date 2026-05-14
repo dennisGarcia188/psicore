@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar as BigCalendar, dateFnsLocalizer, Views } from 'react-big-calendar';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
@@ -35,6 +36,15 @@ export default function CalendarView() {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [currentView, setCurrentView] = useState(window.innerWidth <= 768 ? Views.DAY : Views.WEEK);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Auto-open new appointment modal if ?new=1 is in URL
+    if (searchParams.get('new') === '1') {
+      openNewModal(new Date());
+      setSearchParams({});
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();

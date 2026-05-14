@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, User, Phone, Mail, ChevronRight } from 'lucide-react';
 import { maskCPF, maskPhone, maskRG } from '../utils/masks';
 import api from '../api';
@@ -19,9 +19,15 @@ export default function PatientsList() {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     fetchPatients();
+    // Auto-open new patient modal if ?new=1 is in URL
+    if (searchParams.get('new') === '1') {
+      setShowModal(true);
+      setSearchParams({});
+    }
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
