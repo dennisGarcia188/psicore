@@ -181,23 +181,25 @@ export default function CalendarView() {
     if (!isMobile) openNewModal(start);
   };
 
-  // ── Drill-down: clique num DIA no calendário de MÊS (mobile e desktop) ─────
-  // No react-big-calendar, em Month view, o evento de clique no número do dia
-  // é o onDrillDown — o único que funciona via touch no celular.
+  // ── Drill-down: clique num DIA no calendário de MÊS ─────────────────────
+  // IMPORTANTE: drilldownView não pode ser null, pois isso desabilita o clique.
+  // Em mobile controlamos a view via prop view={Views.MONTH} fixo.
   const handleDrillDown = (date) => {
-    if (isMobile) {
-      // Abre o painel bottom-sheet com a lista do dia
-      const dayEvts = events.filter(e => {
-        const d = new Date(e.start);
-        return (
-          d.getFullYear() === date.getFullYear() &&
-          d.getMonth()    === date.getMonth()    &&
-          d.getDate()     === date.getDate()
-        );
-      });
+    const dayEvts = events.filter(e => {
+      const d = new Date(e.start);
+      return (
+        d.getFullYear() === date.getFullYear() &&
+        d.getMonth()    === date.getMonth()    &&
+        d.getDate()     === date.getDate()
+      );
+    });
+
+    if (dayEvts.length > 0) {
+      // Sempre abre o painel de lista quando há eventos (mobile E desktop)
       setDayPanelDate(date);
       setDayPanelEvents(dayEvts);
     } else {
+      // Dia vazio: abre modal de novo agendamento diretamente
       openNewModal(date);
     }
   };
@@ -286,7 +288,8 @@ export default function CalendarView() {
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
           onDrillDown={handleDrillDown}
-          drilldownView={null}
+          // Não definir drilldownView={null} pois isso DESABILITA o clique no número do dia!
+          // A navegação de view é controlada pelo onView + view prop fixo no mobile.
           selectable
           views={isMobile ? [Views.MONTH] : [Views.MONTH, Views.WEEK, Views.DAY]}
           messages={messages}
@@ -297,110 +300,100 @@ export default function CalendarView() {
         />
       </div>
 
-      {/* ── Painel de Atendimentos do Dia (Mobile) ──────────────────────── */}
-      {isMobile && dayPanelDate && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          backgroundColor: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'flex-end',
-        }} onClick={() => setDayPanelDate(null)}>
+      {/* ── Painel de Atendimentos do Dia (Mobile + Desktop) ──────────────── */}
+      {dayPanelDate && (
+        <ModalPortal>
           <div
-            onClick={e => e.stopPropagation()}
             style={{
-              width: '100%',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: '20px 20px 0 0',
-              padding: '1.5rem 1.25rem 5rem',
-              maxHeight: '80vh',
-              overflowY: 'auto',
+              position: 'fixed', inset: 0, zIndex: 9999,
+              backgroundColor: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: isMobile ? 'flex-end' : 'center',
+              justifyContent: 'center',
             }}
+            onClick={() => setDayPanelDate(null)}
           >
-            {/* Handle bar */}
-            <div style={{ width: '40px', height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', margin: '-0.5rem auto 1.25rem' }} />
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                width: isMobile ? '100%' : '480px',
+                backgroundColor: 'var(--color-surface)',
+                borderRadius: isMobile ? '20px 20px 0 0' : '20px',
+                padding: isMobile ? '1.5rem 1.25rem 5rem' : '1.75rem',
+                maxHeight: isMobile ? '80vh' : '70vh',
+                overflowY: 'auto',
+                boxShadow: 'var(--shadow-lg)',
+              }}
+            >
+              {/* Handle bar (só mobile) */}
+              {isMobile && <div style={{ width: '40px', height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', margin: '-0.5rem auto 1.25rem' }} />}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div>
-                <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text-main)', textTransform: 'capitalize' }}>
-                  {formatDayPanelDate(dayPanelDate)}
-                </h3>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-                  {dayPanelEvents.length > 0 ? `${dayPanelEvents.length} atendimento(s)` : 'Nenhum atendimento'}
-                </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <div>
+                  <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text-main)', textTransform: 'capitalize' }}>
+                    {formatDayPanelDate(dayPanelDate)}
+                  </h3>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                    {dayPanelEvents.length > 0 ? `${dayPanelEvents.length} atendimento(s)` : 'Nenhum atendimento'}
+                  </p>
+                </div>
+                <button onClick={() => setDayPanelDate(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                  <X size={22} />
+                </button>
               </div>
+
+              {dayPanelEvents.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  {dayPanelEvents
+                    .sort((a, b) => new Date(a.start) - new Date(b.start))
+                    .map(evt => (
+                      <div
+                        key={evt.id}
+                        onClick={() => { setDayPanelDate(null); setSelectedEvent(evt); }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '1rem',
+                          backgroundColor: STATUS_BG[evt.resource?.status] || 'rgba(2,132,199,0.08)',
+                          padding: '1rem', borderRadius: '14px',
+                          borderLeft: `4px solid ${STATUS_COLORS[evt.resource?.status] || '#0284C7'}`,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: STATUS_COLORS[evt.resource?.status] || '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.1rem', flexShrink: 0 }}>
+                          {evt.title?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontWeight: 700, color: 'var(--color-text-main)', marginBottom: '0.2rem' }}>{evt.title}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', flexWrap: 'wrap' }}>
+                            <Clock size={12} />
+                            <span>{new Date(evt.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: STATUS_COLORS[evt.resource?.status], backgroundColor: STATUS_BG[evt.resource?.status], padding: '0.1rem 0.5rem', borderRadius: '99px' }}>
+                              {evt.resource?.status}
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight size={18} color="var(--color-text-muted)" />
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--color-text-muted)' }}>
+                  <CalendarPlus size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                  <p style={{ fontSize: '0.9rem' }}>Nenhum atendimento neste dia.</p>
+                </div>
+              )}
+
               <button
-                onClick={() => setDayPanelDate(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+                onClick={() => { setDayPanelDate(null); openNewModal(dayPanelDate); }}
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
               >
-                <X size={22} />
+                <Plus size={18} /> Agendar neste dia
               </button>
             </div>
-
-            {/* Lista de eventos do dia */}
-            {dayPanelEvents.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                {dayPanelEvents
-                  .sort((a, b) => new Date(a.start) - new Date(b.start))
-                  .map(evt => (
-                    <div
-                      key={evt.id}
-                      onClick={() => { setSelectedEvent(evt); }}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '1rem',
-                        backgroundColor: STATUS_BG[evt.resource?.status] || 'rgba(2,132,199,0.08)',
-                        padding: '1rem',
-                        borderRadius: '14px',
-                        borderLeft: `4px solid ${STATUS_COLORS[evt.resource?.status] || '#0284C7'}`,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{
-                        width: '44px', height: '44px', borderRadius: '12px',
-                        backgroundColor: STATUS_COLORS[evt.resource?.status] || '#0284C7',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: 'white', fontWeight: 800, fontSize: '1.1rem', flexShrink: 0,
-                      }}>
-                        {evt.title?.[0]?.toUpperCase() || '?'}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 700, color: 'var(--color-text-main)', marginBottom: '0.2rem' }}>{evt.title}</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
-                          <Clock size={12} />
-                          <span>{new Date(evt.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                          <span style={{
-                            marginLeft: '0.5rem', fontSize: '0.7rem', fontWeight: 700,
-                            color: STATUS_COLORS[evt.resource?.status],
-                            backgroundColor: STATUS_BG[evt.resource?.status],
-                            padding: '0.1rem 0.5rem', borderRadius: '99px',
-                          }}>
-                            {evt.resource?.status}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight size={18} color="var(--color-text-muted)" />
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--color-text-muted)' }}>
-                <CalendarPlus size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                <p style={{ fontSize: '0.9rem' }}>Nenhum atendimento neste dia.</p>
-              </div>
-            )}
-
-            {/* Botão de novo agendamento para este dia */}
-            <button
-              onClick={() => {
-                setDayPanelDate(null);
-                openNewModal(dayPanelDate);
-              }}
-              className="btn btn-primary"
-              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
-            >
-              <Plus size={18} /> Agendar neste dia
-            </button>
           </div>
-        </div>
+        </ModalPortal>
       )}
+
 
       {/* ── Modal: Novo Agendamento ─────────────────────────────────────── */}
       {showNewModal && (

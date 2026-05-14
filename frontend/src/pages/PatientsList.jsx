@@ -240,9 +240,15 @@ export default function PatientsList() {
                       <option value="Viúvo">Viúvo(a)</option>
                     </select>
                   </div>
-                  <div className="input-group" style={{ gridColumn: 'span 1' }}>
+                  <div className="input-group">
                     <label>Data de Nascimento</label>
-                    <input type="date" className="input-control" value={newPatient.birth_date} onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})} />
+                    <input
+                      type="date"
+                      className="input-control"
+                      value={newPatient.birth_date}
+                      onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})}
+                      style={{ width: '100%', colorScheme: 'light' }}
+                    />
                   </div>
                 </div>
                 
