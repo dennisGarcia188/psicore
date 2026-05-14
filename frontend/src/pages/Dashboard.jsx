@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Calendar as CalendarIcon, DollarSign, BarChart2, FileText, Settings as SettingsIcon, LogOut, LayoutDashboard, Book, Brain, Menu, X } from 'lucide-react';
+import { Users, Calendar as CalendarIcon, DollarSign, BarChart2, FileText, Settings as SettingsIcon, LogOut, LayoutDashboard, Book, Brain, Menu, X, Plus } from 'lucide-react';
 import PatientsList from './PatientsList';
 import PatientDetail from './PatientDetail';
 import CalendarView from './Calendar';
