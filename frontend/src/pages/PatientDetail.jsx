@@ -9,7 +9,8 @@ export default function PatientDetail() {
   const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [templates, setTemplates] = useState([]);
-  const [activeTab, setActiveTab] = useState('prontuario'); // 'dados', 'prontuario', 'financeiro'
+  const [documents, setDocuments] = useState([]);
+  const [activeTab, setActiveTab] = useState('prontuario'); // 'dados', 'prontuario', 'financeiro', 'documentos'
   
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [newNote, setNewNote] = useState({ date_time: '', notes: '', template_id: '' });
@@ -34,6 +35,8 @@ export default function PatientDetail() {
       setEditedPatient(pRes.data);
       const aRes = await api.get(`/appointments/patient/${id}`);
       setAppointments(aRes.data);
+      const dRes = await api.get(`/patients/${id}/documents`);
+      setDocuments(dRes.data);
     } catch (err) {
       console.error('Erro ao buscar dados do paciente', err);
     }
@@ -135,6 +138,7 @@ export default function PatientDetail() {
         <TabButton id="dados" label="Dados Pessoais" icon={User} />
         <TabButton id="prontuario" label="Histórico" icon={Clock} />
         <TabButton id="financeiro" label="Financeiro" icon={DollarSign} />
+        <TabButton id="documentos" label="Documentos" icon={FileText} />
       </div>
 
       {activeTab === 'dados' && (
@@ -299,6 +303,47 @@ export default function PatientDetail() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {activeTab === 'documentos' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Documentos Emitidos</h3>
+          </div>
+          
+          {documents.length === 0 ? (
+            <div style={{ backgroundColor: 'var(--color-surface)', padding: '3rem', textAlign: 'center', borderRadius: 'var(--radius-xl)', color: 'var(--color-text-muted)' }}>
+              Nenhum documento gerado para este paciente. Use a aba "Modelos" para emitir atestados e encaminhamentos.
+            </div>
+          ) : (
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Data de Emissão</th>
+                    <th>Tipo de Documento</th>
+                    <th>Envio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documents.map(doc => (
+                    <tr key={doc.id}>
+                      <td>{new Date(doc.created_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                      <td style={{ fontWeight: 500 }}>{doc.document_type.toUpperCase()}</td>
+                      <td>
+                        {doc.sent_by_email ? (
+                          <span className="badge badge-success">Enviado por E-mail</span>
+                        ) : (
+                          <span className="badge badge-primary">Baixado (PDF)</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

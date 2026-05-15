@@ -42,6 +42,7 @@ def register(user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Se
         raise HTTPException(status_code=400, detail="Email já cadastrado.")
     
     hashed_password = utils.get_password_hash(user.password)
+    trial_end = datetime.datetime.utcnow() + datetime.timedelta(days=15)
     db_user = models.User(
         email=user.email,
         name=user.name,
@@ -49,6 +50,8 @@ def register(user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Se
         crp=user.crp,
         specialty=user.specialty,
         phone=user.phone,
+        trial_expires_at=trial_end,
+        subscription_status=models.SubscriptionStatus.TRIAL.value,
     )
     db.add(db_user)
     db.commit()
@@ -102,6 +105,33 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @router.get("/me", response_model=schemas.User)
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+@router.get("/me/trial-status")
+def get_trial_status(current_user: models.User = Depends(get_current_user)):
+    """Retorna informações sobre o período trial e status da assinatura."""
+    now = datetime.datetime.utcnow()
+    is_trial = current_user.subscription_status == models.SubscriptionStatus.TRIAL.value
+    trial_active = (
+        is_trial and
+        current_user.trial_expires_at is not None and
+        current_user.trial_expires_at > now
+    )
+    days_remaining = None
+    if is_trial and current_user.trial_expires_at:
+        delta = current_user.trial_expires_at - now
+        days_remaining = max(0, delta.days)
+    
+    trial_expired = is_trial and (current_user.trial_expires_at is None or current_user.trial_expires_at <= now)
+
+    return {
+        "subscription_status": current_user.subscription_status,
+        "is_trial": is_trial,
+        "trial_active": trial_active,
+        "trial_expired": trial_expired,
+        "trial_expires_at": current_user.trial_expires_at.isoformat() if current_user.trial_expires_at else None,
+        "days_remaining": days_remaining,
+        "plan_price": current_user.plan_price,
+    }
 
 @router.put("/me", response_model=schemas.User)
 def update_me(data: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):

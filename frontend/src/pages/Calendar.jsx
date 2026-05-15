@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar as BigCalendar, dateFnsLocalizer, Views } from 'react-big-calendar';
+import { Calendar as BigCalendar, dateFnsLocalizer, Views, Navigate } from 'react-big-calendar';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
@@ -37,6 +37,61 @@ const STATUS_BG = {
   'Realizada': 'rgba(16,185,129,0.08)',
   'Cancelada': 'rgba(239,68,68,0.08)',
 };
+
+// ── Toolbar customizada: remove botão "Hoje" no mobile ──────────────────────
+function CustomToolbar({ label, onNavigate, onView, view, views, isMobile }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center',
+      justifyContent: isMobile ? 'space-between' : 'space-between',
+      marginBottom: '0.75rem', gap: '0.5rem', flexWrap: 'wrap',
+    }}>
+      {/* Navegação Anterior / Próximo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <button
+          onClick={() => onNavigate(Navigate.PREVIOUS)}
+          style={{ background: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', color: 'var(--color-text-main)', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.875rem' }}
+        >‹</button>
+        {!isMobile && (
+          <button
+            onClick={() => onNavigate(Navigate.TODAY)}
+            style={{ background: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', color: 'var(--color-text-main)', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.875rem' }}
+          >Hoje</button>
+        )}
+        <button
+          onClick={() => onNavigate(Navigate.NEXT)}
+          style={{ background: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0.35rem 0.75rem', cursor: 'pointer', color: 'var(--color-text-main)', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.875rem' }}
+        >›</button>
+      </div>
+
+      {/* Título do mês/período */}
+      <span style={{ fontWeight: 700, fontSize: isMobile ? '0.95rem' : '1rem', color: 'var(--color-text-main)', textTransform: 'capitalize' }}>
+        {label}
+      </span>
+
+      {/* Seletor de View (apenas desktop) */}
+      {!isMobile && (
+        <div style={{ display: 'flex', gap: '0.25rem' }}>
+          {views.map(v => (
+            <button
+              key={v}
+              onClick={() => onView(v)}
+              style={{
+                background: view === v ? 'var(--color-primary)' : 'var(--color-background)',
+                color: view === v ? 'white' : 'var(--color-text-muted)',
+                border: '1px solid var(--color-border)', borderRadius: '8px',
+                padding: '0.35rem 0.75rem', cursor: 'pointer', fontFamily: 'inherit',
+                fontWeight: 600, fontSize: '0.8rem',
+              }}
+            >
+              {{ month: 'Mês', week: 'Semana', day: 'Dia' }[v] || v}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CalendarView() {
   const [events, setEvents] = useState([]);
@@ -288,8 +343,6 @@ export default function CalendarView() {
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
           onDrillDown={handleDrillDown}
-          // Não definir drilldownView={null} pois isso DESABILITA o clique no número do dia!
-          // A navegação de view é controlada pelo onView + view prop fixo no mobile.
           selectable
           views={isMobile ? [Views.MONTH] : [Views.MONTH, Views.WEEK, Views.DAY]}
           messages={messages}
@@ -297,6 +350,33 @@ export default function CalendarView() {
           eventPropGetter={eventStyleGetter}
           style={{ height: '100%', fontFamily: 'var(--font-family)' }}
           popup
+          components={{
+            toolbar: (toolbarProps) => (
+              <CustomToolbar {...toolbarProps} isMobile={isMobile} />
+            ),
+            month: {
+              // CustomDateHeader: adiciona onTouchEnd para garantir que o toque
+              // no mobile dispare o drill-down mesmo em browsers que não mapeiam
+              // touchstart -> click no react-big-calendar
+              dateHeader: ({ date, label, isOffRange }) => (
+                <div
+                  style={{
+                    textAlign: 'right',
+                    padding: '2px 4px',
+                    fontWeight: isOffRange ? 400 : 700,
+                    color: isOffRange ? 'var(--color-text-muted)' : 'var(--color-text-main)',
+                    cursor: 'pointer',
+                    minHeight: '24px',
+                    userSelect: 'none',
+                  }}
+                  onClick={() => handleDrillDown(date)}
+                  onTouchEnd={(e) => { e.preventDefault(); handleDrillDown(date); }}
+                >
+                  {label}
+                </div>
+              ),
+            },
+          }}
         />
       </div>
 

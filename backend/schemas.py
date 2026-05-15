@@ -125,3 +125,20 @@ class ClinicSettings(ClinicSettingsBase):
 
 class SupportRequest(BaseModel):
     message: str
+
+# --- Patient Document History ---
+class PatientDocumentBase(BaseModel):
+    patient_id: int
+    document_type: str
+    sent_by_email: bool = False
+
+class PatientDocumentCreate(PatientDocumentBase):
+    pass
+
+class PatientDocument(PatientDocumentBase):
+    id: int
+    created_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True

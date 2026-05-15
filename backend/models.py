@@ -39,6 +39,7 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     subscription_status = Column(String, default=SubscriptionStatus.TRIAL.value)
+    trial_expires_at = Column(DateTime, nullable=True)  # Expiração do período gratuito
     plan_price = Column(Float, default=0.0)
     next_billing_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -116,3 +117,17 @@ class Charge(Base):
 
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="charges")
+
+class PatientDocument(Base):
+    __tablename__ = "patient_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    document_type = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    sent_by_email = Column(Boolean, default=False)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+
+    patient = relationship("Patient", backref="documents")
+    owner = relationship("User", backref="documents")
+

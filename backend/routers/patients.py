@@ -59,6 +59,16 @@ def delete_patient(patient_id: int, db: Session = Depends(get_db), current_user:
     db.commit()
     return None
 
+@router.get("/{patient_id}/documents", response_model=List[schemas.PatientDocument])
+def read_patient_documents(patient_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # Verify patient belongs to user
+    patient = db.query(models.Patient).filter(models.Patient.id == patient_id, models.Patient.owner_id == current_user.id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente não encontrado")
+    
+    docs = db.query(models.PatientDocument).filter(models.PatientDocument.patient_id == patient_id).order_by(models.PatientDocument.created_at.desc()).all()
+    return docs
+
 @router.post("/{patient_id}/birthday-email", status_code=status.HTTP_202_ACCEPTED)
 def trigger_birthday_email(patient_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id, models.Patient.owner_id == current_user.id).first()

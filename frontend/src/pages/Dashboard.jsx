@@ -13,6 +13,7 @@ import Home from './Home';
 import DsmConsult from './DsmConsult';
 import Footer from '../components/Footer';
 import SupportModal from '../components/SupportModal';
+import TrialBanner from '../components/TrialBanner';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -204,6 +205,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container" style={{ flex: 1, padding: isMobile ? '1rem 0 3rem' : '2rem 0', width: '100%' }}>
+        <TrialBanner />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/patients" element={<PatientsList />} />
