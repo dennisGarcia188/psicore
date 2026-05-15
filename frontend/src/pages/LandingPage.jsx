@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Activity, Shield, Users, Calendar, Brain, FileText, Zap, ArrowRight, MousePointer2, X } from 'lucide-react';
+import { Activity, Shield, Users, Calendar, Brain, FileText, Zap, ArrowRight, MousePointer2, X, CheckCircle } from 'lucide-react';
 import api from '../api';
 import { maskPhone } from '../utils/masks';
 
@@ -13,6 +13,13 @@ export default function LandingPage() {
     crp: '', specialty: '', phone: '',
     clinic_name: '', clinic_cnpj: '', clinic_address: '', clinic_phone: '',
   });
+
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoSuccess, setDemoSuccess] = useState(false);
+  const [demoError, setDemoError] = useState('');
+  const [demoForm, setDemoForm] = useState({ name: '', email: '', phone: '', message: '' });
+  
   const navigate = useNavigate();
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
@@ -40,6 +47,21 @@ export default function LandingPage() {
     }
   };
 
+  const handleDemoSubmit = async (e) => {
+    e.preventDefault();
+    setDemoLoading(true);
+    setDemoError('');
+    try {
+      await api.post('/auth/request-demo', demoForm);
+      setDemoSuccess(true);
+      setDemoForm({ name: '', email: '', phone: '', message: '' });
+    } catch (err) {
+      setDemoError('Não foi possível enviar a solicitação. Tente novamente mais tarde.');
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   const Section = ({ title }) => (
     <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', marginBottom: '0.25rem', marginTop: '1rem' }}>
       <p style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</p>
@@ -47,274 +69,270 @@ export default function LandingPage() {
   );
 
   return (
-    <div style={{ overflowX: 'hidden', backgroundColor: 'var(--color-background)' }}>
-      {/* Header */}
+    <div style={{ overflowX: 'hidden', backgroundColor: '#F8FAFC', fontFamily: "'Inter', sans-serif" }}>
+      {/* ── HEADER PREMIUM DARK ── */}
       <header style={{ 
         padding: '1.25rem 0', 
-        backgroundColor: 'rgba(255, 255, 255, 0.8)', 
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--color-border)', 
-        position: 'sticky', 
+        backgroundColor: 'rgba(15, 23, 42, 0.85)', 
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
+        position: 'fixed', 
+        width: '100%',
         top: 0, 
         zIndex: 100 
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Brain size={30} color="var(--color-primary)" strokeWidth={2.5} />
-            <h1 style={{ color: 'var(--color-primary)', fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.02em' }}>PsiCore</h1>
+            <Brain size={30} color="#38BDF8" strokeWidth={2.5} />
+            <h1 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.02em', margin: 0 }}>PsiCore</h1>
           </div>
-          <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <a href="#funcionalidades" className="mobile-hide" style={{ color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '0.9rem', marginRight: '0.5rem' }}>Funcionalidades</a>
-            <Link to="/login" className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Entrar</Link>
-            <button onClick={() => setShowRegister(true)} className="btn btn-primary mobile-hide" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>Começar Agora</button>
+          <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <a href="#funcionalidades" className="mobile-hide" style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 500, fontSize: '0.9rem', marginRight: '0.5rem', textDecoration: 'none', transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color='white'} onMouseOut={e => e.target.style.color='rgba(255,255,255,0.7)'}>Funcionalidades</a>
+            <Link to="/login" style={{ color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem', padding: '0.5rem 1rem', borderRadius: '8px', transition: 'background 0.2s' }} onMouseOver={e => e.target.style.backgroundColor='rgba(255,255,255,0.1)'} onMouseOut={e => e.target.style.backgroundColor='transparent'}>Entrar</Link>
+            <button onClick={() => setShowRegister(true)} className="mobile-hide" style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', fontWeight: 700, backgroundColor: '#38BDF8', color: '#0F172A', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseOver={e => e.target.style.transform='scale(1.05)'} onMouseOut={e => e.target.style.transform='scale(1)'}>Começar Agora</button>
           </nav>
         </div>
       </header>
 
       <main>
-        {/* Hero Section */}
+        {/* ── HERO SECTION DARK MODE ── */}
         <section style={{ 
-          padding: '8rem 0 6rem', 
+          padding: '10rem 0 0', 
           textAlign: 'center', 
-          background: 'radial-gradient(circle at top center, #E0F2FE 0%, #F8FAFC 70%)',
-          position: 'relative'
+          background: 'radial-gradient(circle at top center, #1E293B 0%, #0F172A 100%)',
+          position: 'relative',
+          color: 'white',
+          overflow: 'hidden'
         }}>
+          {/* Luz de fundo abstrata */}
+          <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0) 70%)', pointerEvents: 'none' }}></div>
+
           <div className="container" style={{ maxWidth: '900px', position: 'relative', zIndex: 1 }}>
             <div style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
               gap: '0.5rem', 
-              backgroundColor: 'white', 
-              color: 'var(--color-primary)', 
-              padding: '0.5rem 1.25rem', 
+              backgroundColor: 'rgba(56, 189, 248, 0.1)', 
+              color: '#38BDF8', 
+              padding: '0.4rem 1rem', 
               borderRadius: '99px', 
-              fontSize: '0.875rem', 
+              fontSize: '0.8rem', 
               fontWeight: 700, 
               marginBottom: '2rem',
-              boxShadow: 'var(--shadow-sm)',
-              border: '1px solid var(--color-border)'
+              border: '1px solid rgba(56, 189, 248, 0.2)'
             }}>
-              <Zap size={16} fill="var(--color-primary)" /> Inteligência e simplicidade na gestão clínica
+              <Zap size={14} fill="#38BDF8" /> Sistema Eletrônico Completo (Resolução CFP)
             </div>
             
             <h2 style={{ 
-              fontSize: 'clamp(2.5rem, 8vw, 4rem)', 
+              fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', 
               fontWeight: 900, 
               marginBottom: '1.5rem', 
               lineHeight: 1.1, 
-              color: 'var(--color-text-main)',
-              letterSpacing: '-0.03em'
+              letterSpacing: '-0.04em'
             }}>
               Sua clínica de psicologia <br />
               <span style={{ 
-                background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+                background: 'linear-gradient(to right, #38BDF8, #818CF8)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>em outro nível.</span>
             </h2>
             
             <p style={{ 
-              fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', 
-              color: 'var(--color-text-muted)', 
+              fontSize: 'clamp(1.1rem, 3vw, 1.25rem)', 
+              color: 'rgba(255,255,255,0.6)', 
               marginBottom: '3rem', 
               lineHeight: 1.6,
-              maxWidth: '700px',
-              margin: '0 auto 3rem'
+              maxWidth: '650px',
+              margin: '0 auto 3rem',
+              fontWeight: 400
             }}>
-              Deixe a burocracia para trás. Gerencie prontuários, agenda e financeiro em uma plataforma premium, segura e feita para psicólogos modernos.
+              Deixe a burocracia para trás. Gerencie prontuários, agenda, pagamentos e emita atestados em uma plataforma de alto padrão, segura e exclusiva.
             </p>
             
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => setShowRegister(true)} className="btn btn-primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1.1rem', fontWeight: 800, borderRadius: 'var(--radius-lg)' }}>
-                Criar Conta Gratuita <ArrowRight size={20} />
+              <button onClick={() => setShowRegister(true)} style={{ padding: '1.1rem 2.5rem', fontSize: '1rem', fontWeight: 700, borderRadius: '12px', backgroundColor: '#38BDF8', color: '#0F172A', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', boxShadow: '0 4px 14px 0 rgba(56, 189, 248, 0.39)' }} onMouseOver={e => e.currentTarget.style.transform='translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform='translateY(0)'}>
+                Experimentar 15 Dias Grátis <ArrowRight size={18} />
               </button>
-              <Link to="/login" className="btn btn-secondary" style={{ padding: '1.25rem 2rem', fontSize: '1.1rem', borderRadius: 'var(--radius-lg)', backgroundColor: 'white' }}>
-                Ver Demonstração
-              </Link>
+              <button onClick={() => setShowDemoModal(true)} style={{ padding: '1.1rem 2rem', fontSize: '1rem', fontWeight: 600, borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.backgroundColor='rgba(255,255,255,0.1)'} onMouseOut={e => e.currentTarget.style.backgroundColor='rgba(255,255,255,0.05)'}>
+                Agendar Demonstração
+              </button>
             </div>
+            <div style={{ marginTop: '5rem' }}></div>
+          </div>
+        </section>
 
-            <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap', opacity: 0.6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                <Shield size={18} /> Criptografia de Ponta
+        {/* ── TRUST & SOCIAL PROOF ── */}
+        <section style={{ padding: '8rem 0 4rem', backgroundColor: '#F8FAFC' }}>
+          <div className="container">
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '4rem', flexWrap: 'wrap', opacity: 0.8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: '#475569' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1.2rem', color: '#0F172A' }}>
+                  <Shield size={24} color="#0EA5E9" /> Criptografia Ponta a Ponta
+                </div>
+                <span style={{ fontSize: '0.9rem' }}>Seus dados clínicos blindados</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                <Activity size={18} /> Disponibilidade 99.9%
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: '#475569' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1.2rem', color: '#0F172A' }}>
+                  <CheckCircle size={24} color="#10B981" /> Normas do CFP
+                </div>
+                <span style={{ fontSize: '0.9rem' }}>Atende à Resolução nº 06/2019</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                <Users size={18} /> Suporte Especializado
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: '#475569' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1.2rem', color: '#0F172A' }}>
+                  <Activity size={24} color="#8B5CF6" /> Alta Disponibilidade
+                </div>
+                <span style={{ fontSize: '0.9rem' }}>99.9% de uptime garantido</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Dashboard Preview Overlay (Colorful decoration) */}
-        <div style={{ 
-          height: '100px', 
-          background: 'linear-gradient(to bottom, #F8FAFC, var(--color-background))' 
-        }}></div>
-
-        {/* Funcionalidades */}
-        <section id="funcionalidades" style={{ padding: '6rem 0', backgroundColor: 'var(--color-background)' }}>
+        {/* ── FUNCIONALIDADES PREMIUM ── */}
+        <section id="funcionalidades" style={{ padding: '4rem 0 6rem', backgroundColor: '#F8FAFC' }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-              <h3 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: 'var(--color-text-main)' }}>Tudo o que você precisa</h3>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '1.15rem', maxWidth: '600px', margin: '0 auto' }}>Uma suite completa de ferramentas para otimizar seu tempo e profissionalizar seu atendimento.</p>
+              <h3 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem', color: '#0F172A', letterSpacing: '-0.03em' }}>Tudo o que você precisa</h3>
+              <p style={{ color: '#475569', fontSize: '1.15rem', maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>Uma suíte completa de ferramentas desenhada para minimizar o trabalho braçal e maximizar sua presença clínica.</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
               {[
                 { 
                   icon: Users, 
-                  title: 'Prontuário Digital', 
-                  desc: 'Histórico completo, evolução de sessões e documentos organizados por paciente com total privacidade.',
-                  color: '#0284C7'
+                  title: 'Prontuário Eletrônico', 
+                  desc: 'Histórico cronológico, anotações protegidas e anexos organizados. Acesso instantâneo e rastreabilidade total.',
+                  color: '#0284C7', bg: '#F0F9FF'
                 },
                 { 
                   icon: Calendar, 
-                  title: 'Agenda Inteligente', 
-                  desc: 'Controle seus horários com visualização intuitiva e gestão de faltas e remarcações em um clique.',
-                  color: '#0D9488'
+                  title: 'Agenda Touch Integrada', 
+                  desc: 'Controle mobile perfeito. Visão por dia, semana ou mês. Marque faltas e reposições com apenas um clique.',
+                  color: '#0D9488', bg: '#F0FDFA'
                 },
                 { 
                   icon: FileText, 
-                  title: 'Modelos Personalizados', 
-                  desc: 'Crie seus próprios templates para atestados, anamneses e contratos, agilizando sua escrita clínica.',
-                  color: '#7C3AED'
+                  title: 'Geração de PDF Automático', 
+                  desc: 'Emita atestados e declarações padronizadas com cabeçalho da sua clínica e envie direto para o e-mail do paciente.',
+                  color: '#7C3AED', bg: '#F5F3FF'
                 },
                 { 
                   icon: Activity, 
-                  title: 'Consulta DSM-5', 
-                  desc: 'Base de dados integrada para consulta rápida de critérios diagnósticos durante ou após a sessão.',
-                  color: '#EA580C'
+                  title: 'Consulta DSM-5 Integrada', 
+                  desc: 'Motor de busca rápido para os critérios do DSM-5, sem precisar sair da tela de evolução do paciente.',
+                  color: '#EA580C', bg: '#FFF7ED'
                 },
                 { 
                   icon: Brain, 
-                  title: 'Visão Geral (Dashboard)', 
-                  desc: 'Estatísticas de atendimento e lembretes de aniversariantes e consultas do dia em uma única tela.',
-                  color: '#DB2777'
+                  title: 'Visão Geral Descomplicada', 
+                  desc: 'Painel com as consultas do dia, próximos aniversariantes e faturamento rápido para não perder o controle.',
+                  color: '#DB2777', bg: '#FDF2F8'
                 },
                 { 
                   icon: MousePointer2, 
-                  title: 'Interface Premium', 
-                  desc: 'Design limpo, minimalista e profissional que passa credibilidade para sua prática clínica.',
-                  color: '#111827'
+                  title: 'Experiência Premium', 
+                  desc: 'Navegação fluida sem tempo de carregamento e um design que transmite seriedade para o seu consultório.',
+                  color: '#111827', bg: '#F1F5F9'
                 }
-              ].map(({ icon: Icon, title, desc, color }) => (
+              ].map(({ icon: Icon, title, desc, color, bg }) => (
                 <div key={title} style={{ 
-                  padding: '2.5rem', 
-                  borderRadius: 'var(--radius-2xl)', 
-                  backgroundColor: 'var(--color-surface)', 
-                  boxShadow: 'var(--shadow-md)', 
-                  border: '1px solid var(--color-border)',
-                  transition: 'transform 0.3s ease, border-color 0.3s ease',
+                  padding: '2rem', 
+                  borderRadius: '16px', 
+                  backgroundColor: 'white', 
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', 
+                  border: '1px solid rgba(15, 23, 42, 0.05)',
+                  transition: 'all 0.3s ease',
                 }}
-                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = color }}
-                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)' }}
+                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}
+                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}
                 >
                   <div style={{ 
-                    width: '60px', 
-                    height: '60px', 
-                    borderRadius: 'var(--radius-xl)', 
-                    backgroundColor: `${color}15`, 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: '12px', 
+                    backgroundColor: bg, 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    marginBottom: '1.5rem' 
+                    marginBottom: '1.25rem' 
                   }}>
-                    <Icon color={color} size={30} />
+                    <Icon color={color} size={24} />
                   </div>
-                  <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--color-text-main)' }}>{title}</h4>
-                  <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.7, fontSize: '1rem' }}>{desc}</p>
+                  <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.75rem', color: '#0F172A' }}>{title}</h4>
+                  <p style={{ color: '#475569', lineHeight: 1.6, fontSize: '0.95rem', margin: 0 }}>{desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Final */}
+        {/* ── CTA FINAL ── */}
         <section style={{ 
-          padding: '8rem 0', 
-          background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 50%, #0D9488 100%)', 
+          padding: '6rem 0', 
+          background: '#0F172A', 
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden'
         }}>
-          {/* Subtle background circles */}
-          <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}></div>
-          <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}></div>
+          {/* Subtle background glow */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '800px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, rgba(15, 23, 42, 0) 70%)', pointerEvents: 'none' }}></div>
 
-          <div className="container" style={{ maxWidth: '800px', position: 'relative', zIndex: 1 }}>
-            <h3 style={{ fontSize: '3rem', fontWeight: 900, color: 'white', marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
-              Pronto para transformar sua clínica?
+          <div className="container" style={{ maxWidth: '700px', position: 'relative', zIndex: 1 }}>
+            <h3 style={{ fontSize: '2.5rem', fontWeight: 900, color: 'white', marginBottom: '1.5rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Dê o próximo passo na sua carreira clínica.
             </h3>
-            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.25rem', marginBottom: '3.5rem', lineHeight: 1.6 }}>
-              Junte-se a centenas de psicólogos que já profissionalizaram sua gestão com o PsiCore.
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.15rem', marginBottom: '3rem', lineHeight: 1.6 }}>
+              Comece agora sem compromisso. Experimente todas as funcionalidades premium do PsiCore por 15 dias, totalmente de graça.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => setShowRegister(true)} style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: 'none', cursor: 'pointer', padding: '1.25rem 3rem', borderRadius: 'var(--radius-lg)', fontWeight: 800, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.75rem', boxShadow: 'var(--shadow-lg)' }}>
-                Criar Conta Gratuita <ArrowRight size={20} />
+              <button onClick={() => setShowRegister(true)} style={{ backgroundColor: '#38BDF8', color: '#0F172A', border: 'none', cursor: 'pointer', padding: '1.1rem 2.5rem', borderRadius: '12px', fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'transform 0.2s', boxShadow: '0 4px 14px 0 rgba(56, 189, 248, 0.3)' }} onMouseOver={e => e.currentTarget.style.transform='scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform='scale(1)'}>
+                Criar Minha Conta <ArrowRight size={20} />
               </button>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginTop: '2rem', fontWeight: 500 }}>
-              ✓ Sem fidelidade &nbsp; · &nbsp; ✓ Sem cartão de crédito &nbsp; · &nbsp; ✓ Backup diário
-            </p>
           </div>
         </section>
       </main>
 
-      <footer style={{ padding: '4rem 0', backgroundColor: 'var(--color-text-main)', color: 'rgba(255,255,255,0.5)' }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '3rem', marginBottom: '2rem' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <Brain size={24} color="white" />
-                <span style={{ color: 'white', fontWeight: 800, fontSize: '1.25rem' }}>PsiCore</span>
-              </div>
-              <p style={{ maxWidth: '300px', lineHeight: 1.6, fontSize: '0.9rem' }}>
-                A plataforma de gestão clínica definitiva para psicólogos que buscam excelência e praticidade.
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '4rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <span style={{ color: 'white', fontWeight: 700, marginBottom: '0.5rem' }}>Produto</span>
-                <a href="#funcionalidades" style={{ fontSize: '0.9rem' }}>Funcionalidades</a>
-                <Link to="/login" style={{ fontSize: '0.9rem' }}>Acesso</Link>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <span style={{ color: 'white', fontWeight: 700, marginBottom: '0.5rem' }}>Legal</span>
-                <a href="#" style={{ fontSize: '0.9rem' }}>Privacidade</a>
-                <a href="#" style={{ fontSize: '0.9rem' }}>Termos</a>
-              </div>
-            </div>
+      {/* ── FOOTER ── */}
+      <footer style={{ padding: '2rem 0', backgroundColor: '#020617', color: 'rgba(255,255,255,0.4)' }}>
+        <div className="container" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Brain size={20} color="rgba(255,255,255,0.8)" />
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 800, fontSize: '1rem', whiteSpace: 'nowrap' }}>PsiCore © {new Date().getFullYear()}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.85rem' }}>
-            <p style={{ margin: 0 }}>© 2026 PsiCore. Todos os direitos reservados.</p>
-            <p style={{ margin: 0 }}>Desenvolvido com ❤️ para a psicologia brasileira.</p>
+          
+          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            <a href="#funcionalidades" style={{ fontSize: '0.85rem', color: 'inherit', textDecoration: 'none', whiteSpace: 'nowrap' }}>Funcionalidades</a>
+            <a href="#" style={{ fontSize: '0.85rem', color: 'inherit', textDecoration: 'none', whiteSpace: 'nowrap' }}>Termos de Uso</a>
+            <a href="#" style={{ fontSize: '0.85rem', color: 'inherit', textDecoration: 'none', whiteSpace: 'nowrap' }}>Privacidade</a>
+            <Link to="/login" style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: 600 }}>Acesso ao Sistema</Link>
           </div>
         </div>
       </footer>
 
+      {/* ── MODAL DE REGISTRO (INALTERADO FUNCIONALMENTE) ── */}
       {showRegister && (
         <div className="modal-overlay" style={{ zIndex: 1000 }}>
-          <div className="modal-content" style={{ maxWidth: '700px', padding: '2.5rem' }}>
+          <div className="modal-content" style={{ maxWidth: '700px', padding: '2.5rem', backgroundColor: 'white', borderRadius: '24px' }}>
             <button 
               onClick={() => setShowRegister(false)}
-              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
             >
               <X size={24} />
             </button>
 
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <Brain size={32} color="var(--color-primary)" />
-                <h2 style={{ color: 'var(--color-primary)', fontSize: '1.75rem', fontWeight: 800 }}>PsiCore</h2>
+                <Brain size={32} color="#0284C7" />
+                <h2 style={{ color: '#0F172A', fontSize: '1.75rem', fontWeight: 800 }}>PsiCore</h2>
               </div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Crie sua conta</h3>
-              <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>Preencha seus dados profissionais para começar</p>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0F172A' }}>Inicie seu Trial</h3>
+              <p style={{ color: '#64748B', marginTop: '0.25rem' }}>15 dias gratuitos. Preencha seus dados para começar.</p>
             </div>
 
             {error && (
-              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-error)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: 'var(--font-size-sm)' }}>
+              <div style={{ backgroundColor: '#FEF2F2', color: '#EF4444', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
                 {error}
               </div>
             )}
@@ -331,11 +349,11 @@ export default function LandingPage() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderRadius: 'var(--radius-xl)',
+                  borderRadius: '16px',
                   gap: '1rem'
                 }}>
-                  <div className="spinner"></div>
-                  <p style={{ color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.9rem' }}>Criando sua conta...</p>
+                  <div className="spinner" style={{ borderColor: '#E2E8F0', borderTopColor: '#0EA5E9' }}></div>
+                  <p style={{ color: '#0EA5E9', fontWeight: 700, fontSize: '0.9rem' }}>Criando ambiente...</p>
                 </div>
               )}
 
@@ -343,25 +361,25 @@ export default function LandingPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
                   <Section title="Dados de Acesso" />
                   <div className="input-group" style={{ gridColumn: 'span 2' }}>
-                    <label>Nome Completo *</label>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Nome Completo *</label>
                     <input type="text" className="input-control" required placeholder="Dr. João da Silva" value={form.name} onChange={e => set('name', e.target.value)} />
                   </div>
                   <div className="input-group">
-                    <label>E-mail *</label>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>E-mail *</label>
                     <input type="email" className="input-control" required placeholder="seu@email.com" value={form.email} onChange={e => set('email', e.target.value)} />
                   </div>
                   <div className="input-group">
-                    <label>Senha *</label>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Senha *</label>
                     <input type="password" className="input-control" required placeholder="Mínimo 6 caracteres" value={form.password} onChange={e => set('password', e.target.value)} />
                   </div>
 
                   <Section title="Dados Profissionais" />
                   <div className="input-group">
-                    <label>CRP</label>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>CRP</label>
                     <input type="text" className="input-control" placeholder="CRP 06/123456" value={form.crp} onChange={e => set('crp', e.target.value)} />
                   </div>
                   <div className="input-group">
-                    <label>Especialidade</label>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Especialidade</label>
                     <select className="input-control" value={form.specialty} onChange={e => set('specialty', e.target.value)}>
                       <option value="">Selecione...</option>
                       <option>Psicanálise</option>
@@ -375,37 +393,111 @@ export default function LandingPage() {
                     </select>
                   </div>
                   <div className="input-group" style={{ gridColumn: 'span 2' }}>
-                    <label>Telefone Profissional</label>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Telefone Profissional</label>
                     <input type="text" className="input-control" placeholder="(00) 00000-0000" value={form.phone} onChange={e => set('phone', maskPhone(e.target.value))} />
                   </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', marginTop: '1.5rem', fontSize: '1rem' }} disabled={loading}>
-                  {loading ? 'Criando conta...' : 'Criar Minha Conta no PsiCore'}
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '1rem', marginTop: '1.5rem', fontSize: '1rem', fontWeight: 700, borderRadius: '12px', backgroundColor: '#0F172A', border: 'none' }} disabled={loading}>
+                  {loading ? 'Processando...' : 'Iniciar 15 Dias Grátis'}
                 </button>
               </form>
             </div>
 
-            <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-              Já tem uma conta? <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Fazer login</Link>
+            <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: '#64748B' }}>
+              Já tem uma conta? <Link to="/login" style={{ color: '#0EA5E9', fontWeight: 600, textDecoration: 'none' }}>Fazer login</Link>
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DE AGENDAR DEMONSTRAÇÃO ── */}
+      {showDemoModal && (
+        <div className="modal-overlay" style={{ zIndex: 1000 }}>
+          <div className="modal-content" style={{ maxWidth: '500px', padding: '2.5rem', backgroundColor: 'white', borderRadius: '24px', textAlign: 'center' }}>
+            <button 
+              onClick={() => { setShowDemoModal(false); setDemoSuccess(false); setDemoError(''); }}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+
+            {demoSuccess ? (
+              <div style={{ padding: '2rem 1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                  <div style={{ backgroundColor: '#D1FAE5', padding: '1rem', borderRadius: '50%' }}>
+                    <CheckCircle size={48} color="#10B981" />
+                  </div>
+                </div>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', marginBottom: '1rem' }}>Solicitação Enviada!</h3>
+                <p style={{ color: '#475569', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                  Recebemos seus dados com sucesso. Nossa equipe entrará em contato em breve pelo e-mail ou telefone informado.
+                </p>
+                <button 
+                  onClick={() => { setShowDemoModal(false); setDemoSuccess(false); }} 
+                  className="btn" 
+                  style={{ padding: '1rem 2rem', fontSize: '1rem', fontWeight: 700, borderRadius: '12px', backgroundColor: '#0F172A', color: 'white', border: 'none', width: '100%' }}
+                >
+                  Fechar Janela
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: '2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Activity size={32} color="#0D9488" />
+                  </div>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0F172A' }}>Agendar Demonstração</h3>
+                  <p style={{ color: '#64748B', marginTop: '0.25rem' }}>Preencha os dados e nossa equipe entrará em contato com você.</p>
+                </div>
+
+                {demoError && (
+                  <div style={{ backgroundColor: '#FEF2F2', color: '#EF4444', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'left' }}>
+                    {demoError}
+                  </div>
+                )}
+
+                <form onSubmit={handleDemoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Nome Completo *</label>
+                    <input type="text" className="input-control" required value={demoForm.name} onChange={e => setDemoForm({...demoForm, name: e.target.value})} />
+                  </div>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>E-mail *</label>
+                    <input type="email" className="input-control" required value={demoForm.email} onChange={e => setDemoForm({...demoForm, email: e.target.value})} />
+                  </div>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Telefone / WhatsApp</label>
+                    <input type="text" className="input-control" value={demoForm.phone} onChange={e => setDemoForm({...demoForm, phone: maskPhone(e.target.value)})} />
+                  </div>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Sua Clínica / Observações</label>
+                    <textarea className="input-control" rows="3" value={demoForm.message} onChange={e => setDemoForm({...demoForm, message: e.target.value})}></textarea>
+                  </div>
+
+                  <button type="submit" className="btn" style={{ padding: '1rem', marginTop: '1rem', fontSize: '1rem', fontWeight: 700, borderRadius: '12px', backgroundColor: '#0D9488', color: 'white', border: 'none', position: 'relative' }} disabled={demoLoading}>
+                    {demoLoading ? 'Processando envio...' : 'Enviar Solicitação'}
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
 
       <style>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
+          from { opacity: 0; transform: translateY(15px); }
           to { opacity: 1; transform: translateY(0); }
         }
         main {
-          animation: fadeIn 0.8s ease-out forwards;
+          animation: fadeIn 0.6s ease-out forwards;
         }
         .modal-overlay {
           position: fixed;
           inset: 0;
-          background-color: rgba(15, 23, 42, 0.5);
-          backdrop-filter: blur(4px);
+          background-color: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(6px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -426,8 +518,7 @@ export default function LandingPage() {
         .spinner {
           width: 32px;
           height: 32px;
-          border: 3px solid var(--color-border);
-          border-top-color: var(--color-primary);
+          border: 3px solid;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }

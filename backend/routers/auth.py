@@ -156,3 +156,40 @@ def update_me(data: schemas.UserUpdate, db: Session = Depends(get_db), current_u
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@router.post("/request-demo")
+def request_demo(req: schemas.DemoRequest):
+    import resend as resend_lib
+    import os
+    import email_service
+
+    resend_lib.api_key = os.getenv("RESEND_API_KEY", "")
+    email_from = os.getenv("EMAIL_FROM", "PsiCore <nao-responda@psicore.app.br>")
+    admin_email = os.getenv("ADMIN_EMAIL", "dennis.w.garcia@gmail.com")
+
+    if not resend_lib.api_key:
+        return {"status": "mock", "message": "E-mail simulado (sem API Key)."}
+
+    try:
+        content = f"""
+        <h2 style="color:#0F172A;margin-top:0;font-size:22px;">Nova Solicitação de Demonstração</h2>
+        <p style="color:#475569;line-height:1.6;font-size:15px;">Um novo contato foi recebido através da Landing Page. Seguem os dados informados pelo psicólogo(a):</p>
+        <div style="background:#F8FAFC;padding:20px;border-radius:12px;margin-top:24px;border:1px solid #E2E8F0;">
+            <p style="margin:0 0 12px;font-size:15px;color:#334155;"><strong>Nome:</strong> {req.name}</p>
+            <p style="margin:0 0 12px;font-size:15px;color:#334155;"><strong>E-mail:</strong> <a href="mailto:{req.email}" style="color:#0284C7;text-decoration:none;">{req.email}</a></p>
+            <p style="margin:0 0 12px;font-size:15px;color:#334155;"><strong>Telefone/WhatsApp:</strong> {req.phone or 'Não informado'}</p>
+            <p style="margin:0;font-size:15px;color:#334155;"><strong>Observações:</strong> {req.message or 'Nenhuma mensagem'}</p>
+        </div>
+        """
+        html_body = email_service._base(content)
+
+        resend_lib.Emails.send({
+            "from": email_from,
+            "to": [admin_email],
+            "subject": f"Novo Lead: {req.name} (PsiCore)",
+            "html": html_body,
+        })
+        return {"status": "ok", "message": "Solicitação enviada com sucesso."}
+    except Exception as e:
+        print(f"RESEND ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao enviar solicitação: {str(e)}")

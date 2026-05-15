@@ -126,6 +126,12 @@ class ClinicSettings(ClinicSettingsBase):
 class SupportRequest(BaseModel):
     message: str
 
+class DemoRequest(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+    message: Optional[str] = None
+
 # --- Patient Document History ---
 class PatientDocumentBase(BaseModel):
     patient_id: int
