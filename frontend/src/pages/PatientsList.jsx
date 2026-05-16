@@ -192,51 +192,55 @@ export default function PatientsList() {
 
       {showModal && (
         <ModalPortal>
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Novo Paciente</h3>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: '4px' }}>
-                  ✕
+          <div className="modal-overlay" onClick={() => setShowModal(false)} style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center', padding: isMobile ? '1rem' : '2rem' }}>
+            <div className="modal-content animate-slide-up" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '600px', maxHeight: isMobile ? '90vh' : 'auto', overflowY: 'auto', padding: isMobile ? '1.5rem' : '2.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text-main)', margin: 0 }}>Novo Paciente</h3>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', margin: '4px 0 0 0' }}>Preencha os dados básicos do paciente</p>
+                </div>
+                <button onClick={() => setShowModal(false)} style={{ background: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: '12px', cursor: 'pointer', color: 'var(--color-text-muted)', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={20} />
                 </button>
               </div>
                <form onSubmit={handleCreatePatient}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
-                    <label>Nome Completo *</label>
-                    <input type="text" className="input-control" required value={newPatient.name} onChange={e => setNewPatient({...newPatient, name: e.target.value})} placeholder="Ex: João da Silva" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                  <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Nome Completo *</label>
+                    <input type="text" className="input-control" required value={newPatient.name} onChange={e => setNewPatient({...newPatient, name: e.target.value})} placeholder="Ex: João da Silva" style={{ height: '48px' }} />
                   </div>
-                  <div className="input-group">
-                    <label>CPF</label>
-                    <input type="text" className="input-control" value={newPatient.cpf} onChange={e => setNewPatient({...newPatient, cpf: maskCPF(e.target.value)})} placeholder="000.000.000-00" />
-                  </div>
-                  <div className="input-group">
-                    <label>RG</label>
-                    <input type="text" className="input-control" value={newPatient.rg} onChange={e => setNewPatient({...newPatient, rg: maskRG(e.target.value)})} placeholder="00.000.000-0" />
-                  </div>
-                  <div className="input-group">
-                    <label>Telefone</label>
-                    <input type="text" className="input-control" value={newPatient.phone} onChange={e => setNewPatient({...newPatient, phone: maskPhone(e.target.value)})} placeholder="(00) 00000-0000" />
-                  </div>
-                  <div className="input-group">
-                    <label>Email</label>
+                  
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>E-mail</label>
                     <input type="email" className="input-control" value={newPatient.email} onChange={e => setNewPatient({...newPatient, email: e.target.value})} placeholder="joao@email.com" />
                   </div>
-                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
-                    <label>Endereço Completo</label>
-                    <input type="text" className="input-control" value={newPatient.address} onChange={e => setNewPatient({...newPatient, address: e.target.value})} placeholder="Rua Exemplo, 123 - Bairro" />
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Telefone</label>
+                    <input type="text" className="input-control" value={newPatient.phone} onChange={e => setNewPatient({...newPatient, phone: maskPhone(e.target.value)})} placeholder="(00) 00000-0000" />
                   </div>
-                  <div className="input-group">
-                    <label>Profissão</label>
-                    <input type="text" className="input-control" value={newPatient.profession} onChange={e => setNewPatient({...newPatient, profession: e.target.value})} placeholder="Engenheiro" />
+
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>CPF</label>
+                    <input type="text" className="input-control" value={newPatient.cpf} onChange={e => setNewPatient({...newPatient, cpf: maskCPF(e.target.value)})} placeholder="000.000.000-00" />
                   </div>
-                  <div className="input-group">
-                    <label>Contato de Emergência</label>
-                    <input type="text" className="input-control" value={newPatient.emergency_contact} onChange={e => setNewPatient({...newPatient, emergency_contact: maskPhone(e.target.value)})} placeholder="(00) 00000-0000 (Mãe)" />
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>RG</label>
+                    <input type="text" className="input-control" value={newPatient.rg} onChange={e => setNewPatient({...newPatient, rg: maskRG(e.target.value)})} placeholder="00.000.000-0" />
                   </div>
-                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
-                    <label>Estado Civil</label>
-                    <select className="input-control" value={newPatient.marital_status} onChange={e => setNewPatient({...newPatient, marital_status: e.target.value})}>
+
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Data de Nascimento</label>
+                    <input
+                      type="date"
+                      className="input-control"
+                      value={newPatient.birth_date}
+                      onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})}
+                      style={{ colorScheme: 'light', minHeight: '44px' }}
+                    />
+                  </div>
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Estado Civil</label>
+                    <select className="input-control" value={newPatient.marital_status} onChange={e => setNewPatient({...newPatient, marital_status: e.target.value})} style={{ height: '44px' }}>
                       <option value="">Selecione...</option>
                       <option value="Solteiro">Solteiro(a)</option>
                       <option value="Casado">Casado(a)</option>
@@ -244,21 +248,25 @@ export default function PatientsList() {
                       <option value="Viúvo">Viúvo(a)</option>
                     </select>
                   </div>
-                  <div className="input-group">
-                    <label>Data de Nascimento</label>
-                    <input
-                      type="date"
-                      className="input-control"
-                      value={newPatient.birth_date}
-                      onChange={e => setNewPatient({...newPatient, birth_date: e.target.value})}
-                      style={{ width: '100%', colorScheme: 'light' }}
-                    />
+
+                  <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Endereço Completo</label>
+                    <input type="text" className="input-control" value={newPatient.address} onChange={e => setNewPatient({...newPatient, address: e.target.value})} placeholder="Rua Exemplo, 123 - Bairro" />
+                  </div>
+
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Profissão</label>
+                    <input type="text" className="input-control" value={newPatient.profession} onChange={e => setNewPatient({...newPatient, profession: e.target.value})} placeholder="Engenheiro" />
+                  </div>
+                  <div className="input-group" style={{ gridColumn: isMobile ? 'span 2' : 'span 1' }}>
+                    <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Contato de Emergência</label>
+                    <input type="text" className="input-control" value={newPatient.emergency_contact} onChange={e => setNewPatient({...newPatient, emergency_contact: maskPhone(e.target.value)})} placeholder="(00) 00000-0000" />
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
-                  <button type="submit" className="btn btn-primary">Salvar Paciente</button>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', justifyContent: 'flex-end', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ order: isMobile ? 2 : 1 }}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary" style={{ order: isMobile ? 1 : 2 }}>Salvar Paciente</button>
                 </div>
               </form>
             </div>

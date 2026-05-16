@@ -55,6 +55,10 @@ export default function Finance() {
   };
 
   const togglePayment = async (appt) => {
+    if (appt.is_paid) {
+      alert('Este pagamento já foi registrado como PAGO e não pode ser alterado.');
+      return;
+    }
     try {
       await api.put(`/appointments/${appt.id}`, { ...appt, is_paid: !appt.is_paid });
       // Atualiza localmente sem refetch completo
@@ -161,50 +165,106 @@ export default function Finance() {
 
       {/* ── Tabela completa ─────────────────────────────────────────────── */}
       <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Paciente</th>
-              <th>Valor</th>
-              <th>Status</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
-          <tbody>
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {appointments.length === 0 ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>Nenhum registro encontrado.</td></tr>
+              <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                Nenhum registro encontrado.
+              </div>
             ) : (
               appointments.map(appt => (
-                <tr
-                  key={appt.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => setDetailAppt(appt)}
-                  onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(2,132,199,0.03)'}
-                  onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <td>{new Date(appt.date_time).toLocaleDateString('pt-BR')}</td>
-                  <td style={{ fontWeight: 500 }}>{appt.patient_name}</td>
-                  <td style={{ fontWeight: 700 }}>R$ {(appt.fee || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td>
+                <div key={appt.id} onClick={() => setDetailAppt(appt)} style={{ 
+                  backgroundColor: 'white', 
+                  padding: '1.25rem', 
+                  borderRadius: '16px', 
+                  border: '1px solid var(--color-border)',
+                  boxShadow: 'var(--shadow-sm)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                      {new Date(appt.date_time).toLocaleDateString('pt-BR')}
+                    </span>
                     <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>
                       {appt.is_paid ? 'Pago' : 'Pendente'}
                     </span>
-                  </td>
-                  <td>
-                    <button
-                      onClick={e => { e.stopPropagation(); togglePayment(appt); }}
-                      className="btn btn-secondary"
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                      {appt.patient_name}
+                    </p>
+                    <p style={{ margin: '4px 0 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                      R$ {(appt.fee || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  {!appt.is_paid ? (
+                    <button 
+                      onClick={e => { e.stopPropagation(); togglePayment(appt); }} 
+                      className="btn btn-secondary" 
+                      style={{ width: '100%', padding: '0.6rem', fontSize: '0.875rem' }}
                     >
-                      Mudar para {appt.is_paid ? 'Pendente' : 'Pago'}
+                      Marcar como Pago
                     </button>
-                  </td>
-                </tr>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '0.6rem', backgroundColor: 'rgba(16,185,129,0.05)', borderRadius: '8px', color: 'var(--color-success)', fontSize: '0.8rem', fontWeight: 600 }}>
+                      ✓ Pagamento Recebido
+                    </div>
+                  )}
+                </div>
               ))
             )}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Paciente</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.length === 0 ? (
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>Nenhum registro encontrado.</td></tr>
+              ) : (
+                appointments.map(appt => (
+                  <tr
+                    key={appt.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setDetailAppt(appt)}
+                    onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(2,132,199,0.03)'}
+                    onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <td>{new Date(appt.date_time).toLocaleDateString('pt-BR')}</td>
+                    <td style={{ fontWeight: 500 }}>{appt.patient_name}</td>
+                    <td style={{ fontWeight: 700 }}>R$ {(appt.fee || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td>
+                      <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>
+                        {appt.is_paid ? 'Pago' : 'Pendente'}
+                      </span>
+                    </td>
+                    <td>
+                      {!appt.is_paid ? (
+                        <button
+                          onClick={e => { e.stopPropagation(); togglePayment(appt); }}
+                          className="btn btn-secondary"
+                          style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
+                        >
+                          Marcar como Pago
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                          Concluído
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════

@@ -142,15 +142,18 @@ export default function PatientDetail() {
     <button 
       onClick={() => setActiveTab(id)}
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
-        borderBottom: activeTab === id ? '2px solid var(--color-primary)' : '2px solid transparent',
+        display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'flex-start', gap: '0.5rem', padding: isMobile ? '0.75rem 0.5rem' : '1rem 1.5rem',
+        borderBottom: activeTab === id ? '3px solid var(--color-primary)' : '2px solid transparent',
         color: activeTab === id ? 'var(--color-primary)' : 'var(--color-text-muted)',
-        fontWeight: activeTab === id ? 600 : 500,
-        backgroundColor: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer',
-        whiteSpace: 'nowrap', flexShrink: 0, fontSize: isMobile ? '0.8rem' : '1rem'
+        fontWeight: activeTab === id ? 700 : 500,
+        backgroundColor: activeTab === id && isMobile ? 'rgba(2,132,199,0.05)' : 'transparent', 
+        borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer',
+        whiteSpace: 'nowrap', flexShrink: 0, fontSize: isMobile ? '0.75rem' : '1rem',
+        borderRadius: isMobile ? '8px 8px 0 0' : '0',
+        transition: 'all 0.2s'
       }}
     >
-      <Icon size={isMobile ? 16 : 18} /> {label}
+      <Icon size={isMobile ? 14 : 18} /> {label}
     </button>
   );
 
@@ -176,19 +179,16 @@ export default function PatientDetail() {
       </div>
 
       <div style={{ 
-        display: 'flex', 
+        display: isMobile ? 'grid' : 'flex',
+        gridTemplateColumns: isMobile ? '1fr 1fr' : 'none',
         borderBottom: '1px solid var(--color-border)', 
         marginBottom: '2rem', 
-        overflowX: 'auto',
-        WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
         gap: isMobile ? '0.5rem' : '0'
       }}>
-        <TabButton id="dados" label="Dados Pessoais" icon={User} />
+        <TabButton id="dados" label="Dados" icon={User} />
         <TabButton id="prontuario" label="Histórico" icon={Clock} />
-        <TabButton id="financeiro" label="Financeiro" icon={DollarSign} />
-        <TabButton id="documentos" label="Documentos" icon={FileText} />
+        <TabButton id="financeiro" label="Finanças" icon={DollarSign} />
+        <TabButton id="documentos" label="Docs" icon={FileText} />
       </div>
 
       {activeTab === 'dados' && (
