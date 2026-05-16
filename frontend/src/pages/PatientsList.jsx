@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, User, Phone, Mail, ChevronRight } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, User, Phone, Mail, ChevronRight, X } from 'lucide-react';
 import { maskCPF, maskPhone, maskRG } from '../utils/masks';
 import api from '../api';
 import LoadingScreen from '../components/LoadingScreen';
