@@ -24,15 +24,19 @@ export default function PatientsList() {
 
   useEffect(() => {
     fetchPatients();
-    // Auto-open new patient modal if ?new=1 is in URL
-    if (searchParams.get('new') === '1') {
-      setShowModal(true);
-      setSearchParams({});
-    }
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Effect to handle URL parameters (like auto-opening the modal)
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowModal(true);
+      // Limpa o parâmetro da URL sem recarregar a página
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const fetchPatients = async () => {
     setLoading(true);

@@ -50,41 +50,24 @@ def send_document_email(
     }
     doc_label = doc_types.get(req.document_type, req.document_type)
 
-    html_body = f"""
-    <p>Olá, <strong>{req.patient_name}</strong>!</p>
-    <p>Segue em anexo seu <strong>{doc_label}</strong> emitido por <strong>{current_user.name}</strong>.</p>
-    <p style="margin-top:16px;color:#64748b;font-size:13px;">
-      Este documento foi gerado pelo sistema PsiCore e é de uso exclusivo do destinatário.
-    </p>
-    """
 
     # Nota: Resend suporta attachments via API. Construímos o payload diretamente.
-    import resend as resend_lib
-    import os
-
-    resend_lib.api_key = os.getenv("RESEND_API_KEY", "")
-    email_from = os.getenv("EMAIL_FROM", "PsiCore <nao-responda@psicore.app.br>")
-
-    if not resend_lib.api_key:
-        # Mock em dev
-        return {"status": "mock", "message": "E-mail não enviado (sem API Key). PDF gerado com sucesso."}
-
+    from email_service import send_document_email as send_email_fn
+    
     try:
         pdf_bytes = base64.b64decode(req.pdf_base64)
         filename = f"{req.document_type}_{req.patient_name.replace(' ', '_')}.pdf"
 
-        resend_lib.Emails.send({
-            "from": email_from,
-            "to": [req.to_email],
-            "subject": f"PsiCore — {doc_label} de {req.patient_name}",
-            "html": html_body,
-            "attachments": [
-                {
-                    "filename": filename,
-                    "content": list(pdf_bytes),
-                }
-            ],
-        })
+        # Chama a função padronizada do email_service
+        background_tasks.add_task(
+            send_email_fn,
+            req.patient_name,
+            req.to_email,
+            current_user.name,
+            doc_label,
+            pdf_bytes,
+            filename
+        )
         
         # Save history
         doc_history = models.PatientDocument(
@@ -96,7 +79,7 @@ def send_document_email(
         db.add(doc_history)
         db.commit()
 
-        return {"status": "ok", "message": f"E-mail enviado para {req.to_email}"}
+        return {"status": "ok", "message": f"E-mail sendo enviado para {req.to_email}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao enviar e-mail: {str(e)}")
 

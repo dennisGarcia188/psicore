@@ -253,3 +253,46 @@ def send_charge_email(user_name: str, user_email: str, amount: float, due_date: 
 </table>
 <p style="font-size:14px;color:#475569;margin:0;">Por favor, realize o pagamento para garantir a continuidade do seu acesso ao sistema.</p>"""
     _send(user_email, f"Nova cobrança PsiCore - {reference_month}", _base(content))
+
+
+def send_document_email(patient_name: str, patient_email: str, psychologist_name: str, doc_label: str, pdf_content: bytes, filename: str):
+    content = f"""
+<h2 style="margin:0 0 8px;font-size:22px;color:#0F172A;">Seu Documento Chegou! 📄</h2>
+<p style="color:#64748B;margin:0 0 24px;">Olá, <strong>{patient_name}</strong>! Segue em anexo seu <strong>{doc_label}</strong> emitido por <strong>{psychologist_name}</strong>.</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:20px;margin-bottom:20px;">
+<tr><td>
+  <p style="margin:0;font-size:14px;color:#475569;line-height:1.6;">
+    Este documento foi gerado através do sistema <strong>PsiCore</strong>. 
+    Para sua segurança, recomendamos que salve o arquivo anexo em um local seguro.
+  </p>
+</td></tr>
+</table>
+
+<p style="font-size:13px;color:#94A3B8;margin:0;">Este e-mail contém um anexo em formato PDF.</p>"""
+    
+    # Construímos o payload com anexo
+    import resend as resend_lib
+    resend_lib.api_key = os.getenv("RESEND_API_KEY", "")
+    email_from = os.getenv("EMAIL_FROM", "PsiCore <nao-responda@psicore.app.br>")
+    
+    if not resend_lib.api_key:
+        logger.warning(f"[MOCK] Enviar {doc_label} para: {patient_email}")
+        return
+
+    try:
+        resend_lib.Emails.send({
+            "from": email_from,
+            "to": [patient_email],
+            "subject": f"PsiCore — {doc_label} de {patient_name}",
+            "html": _base(content),
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": list(pdf_content),
+                }
+            ],
+        })
+        logger.info(f"✅ Documento enviado com sucesso para {patient_email}")
+    except Exception as e:
+        logger.error(f"❌ Erro ao enviar documento por e-mail: {str(e)}")

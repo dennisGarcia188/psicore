@@ -83,6 +83,10 @@ export default function PatientDetail() {
   };
 
   const togglePayment = async (appt) => {
+    if (appt.is_paid) {
+      alert('Este pagamento já foi registrado como PAGO e não pode ser alterado.');
+      return;
+    }
     try {
       await api.put(`/appointments/${appt.id}`, { ...appt, is_paid: !appt.is_paid });
       fetchPatientData();
@@ -171,7 +175,16 @@ export default function PatientDetail() {
         </div>
       </div>
 
-      <div className="hide-scrollbar" style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem', overflowX: isMobile ? 'auto' : 'visible' }}>
+      <div style={{ 
+        display: 'flex', 
+        borderBottom: '1px solid var(--color-border)', 
+        marginBottom: '2rem', 
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        gap: isMobile ? '0.5rem' : '0'
+      }}>
         <TabButton id="dados" label="Dados Pessoais" icon={User} />
         <TabButton id="prontuario" label="Histórico" icon={Clock} />
         <TabButton id="financeiro" label="Financeiro" icon={DollarSign} />
@@ -322,38 +335,87 @@ export default function PatientDetail() {
 
       {activeTab === 'financeiro' && (
         <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Data da Consulta</th>
-                <th>Valor (R$)</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
+          {isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {appointments.length === 0 ? (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>Nenhuma consulta registrada.</td></tr>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                  Nenhum registro financeiro.
+                </div>
               ) : (
                 appointments.map(appt => (
-                  <tr key={appt.id}>
-                    <td>{new Date(appt.date_time).toLocaleString()}</td>
-                    <td>{appt.fee.toFixed(2)}</td>
-                    <td>
+                  <div key={appt.id} style={{ 
+                    backgroundColor: 'white', 
+                    padding: '1.25rem', 
+                    borderRadius: '16px', 
+                    border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                        {new Date(appt.date_time).toLocaleDateString('pt-BR')}
+                      </span>
                       <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>
                         {appt.is_paid ? 'Pago' : 'Pendente'}
                       </span>
-                    </td>
-                    <td>
-                      <button onClick={() => togglePayment(appt)} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}>
-                        Marcar como {appt.is_paid ? 'Pendente' : 'Pago'}
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                        R$ {appt.fee?.toFixed(2)}
+                      </p>
+                    </div>
+                    {!appt.is_paid && (
+                      <button 
+                        onClick={() => togglePayment(appt)} 
+                        className="btn btn-primary" 
+                        style={{ width: '100%', padding: '0.6rem' }}
+                      >
+                        Marcar como Pago
                       </button>
-                    </td>
-                  </tr>
+                    )}
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+            </div>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Data da Consulta</th>
+                  <th>Valor (R$)</th>
+                  <th>Status</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>Nenhum registro financeiro.</td>
+                  </tr>
+                ) : (
+                  appointments.map(appt => (
+                    <tr key={appt.id}>
+                      <td>{new Date(appt.date_time).toLocaleString()}</td>
+                      <td style={{ fontWeight: 600 }}>R$ {appt.fee?.toFixed(2)}</td>
+                      <td>
+                        <span className={`badge ${appt.is_paid ? 'badge-success' : 'badge-warning'}`}>
+                          {appt.is_paid ? 'Pago' : 'Pendente'}
+                        </span>
+                      </td>
+                      <td>
+                        {!appt.is_paid ? (
+                          <button onClick={() => togglePayment(appt)} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}>
+                            Marcar como Pago
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Concluído</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
