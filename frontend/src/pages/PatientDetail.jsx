@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle, Clock, FileText, User, DollarSign } from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, Clock, FileText, User, DollarSign, Mail, Phone, CreditCard } from 'lucide-react';
 import api from '../api';
 import LoadingScreen from '../components/LoadingScreen';
+import ModalPortal from '../components/ModalPortal';
+import RichTextEditor from '../components/RichTextEditor';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -11,8 +13,11 @@ export default function PatientDetail() {
   const [templates, setTemplates] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [activeTab, setActiveTab] = useState('prontuario'); // 'dados', 'prontuario', 'financeiro', 'documentos'
+  const [filterType, setFilterType] = useState('all');
+  const [filterDate, setFilterDate] = useState('');
   
   const [showNoteModal, setShowNoteModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [newNote, setNewNote] = useState({ date_time: '', notes: '', template_id: '' });
   
   const [editMode, setEditMode] = useState(false);
@@ -103,6 +108,32 @@ export default function PatientDetail() {
 
   if (!patient) return <LoadingScreen />;
 
+  const filteredAppointments = [...appointments].filter(appt => {
+    if (filterType === 'all') return true;
+    const apptDate = new Date(appt.date_time);
+    const now = new Date();
+    
+    if (filterType === 'month') {
+      return apptDate.getMonth() === now.getMonth() && apptDate.getFullYear() === now.getFullYear();
+    }
+    if (filterType === 'week') {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      return apptDate >= startOfWeek && apptDate <= endOfWeek;
+    }
+    if (filterType === 'specific' && filterDate) {
+      const filterD = new Date(filterDate + 'T00:00:00');
+      return apptDate.getDate() === filterD.getDate() && apptDate.getMonth() === filterD.getMonth() && apptDate.getFullYear() === filterD.getFullYear();
+    }
+    return true;
+  }).sort((a,b) => new Date(b.date_time) - new Date(a.date_time));
+
   const TabButton = ({ id, label, icon: Icon }) => (
     <button 
       onClick={() => setActiveTab(id)}
@@ -125,12 +156,18 @@ export default function PatientDetail() {
         <ArrowLeft size={20} /> Voltar para Pacientes
       </Link>
 
-      <div style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1.5rem' : '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--color-primary)' }}>{patient.name}</h2>
-        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '0.5rem' : '2rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-          <p>CPF: {patient.cpf || '-'}</p>
-          <p>Telefone: {patient.phone || '-'}</p>
-          <p>E-mail: {patient.email || '-'}</p>
+      <div style={{ backgroundColor: 'var(--color-surface)', padding: isMobile ? '1.5rem' : '2rem', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--color-text-main)' }}>{patient.name}</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+            <CreditCard size={16} /> <strong>CPF:</strong> {patient.cpf || 'Não informado'}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+            <Phone size={16} /> <strong>Telefone:</strong> {patient.phone || 'Não informado'}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+            <Mail size={16} /> <strong>E-mail:</strong> {patient.email || 'Não informado'}
+          </div>
         </div>
       </div>
 
@@ -158,14 +195,30 @@ export default function PatientDetail() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '1.5rem' }}>
             {!editMode ? (
               <>
-                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Nome Completo</strong>{patient.name}</div>
-                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>CPF</strong>{patient.cpf || '-'}</div>
-                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>RG</strong>{patient.rg || '-'}</div>
-                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Data de Nascimento</strong>{patient.birth_date ? new Date(patient.birth_date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</div>
-                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Profissão</strong>{patient.profession || '-'}</div>
-                <div><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Estado Civil</strong>{patient.marital_status || '-'}</div>
-                <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Endereço</strong>{patient.address || '-'}</div>
-                <div style={{ gridColumn: 'span 2' }}><strong style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Contato de Emergência</strong>{patient.emergency_contact || '-'}</div>
+                {[
+                  { label: 'Nome Completo', value: patient.name, full: true },
+                  { label: 'CPF', value: patient.cpf },
+                  { label: 'RG', value: patient.rg },
+                  { label: 'Data de Nascimento', value: patient.birth_date ? new Date(patient.birth_date + 'T12:00:00').toLocaleDateString('pt-BR') : '' },
+                  { label: 'Profissão', value: patient.profession },
+                  { label: 'Estado Civil', value: patient.marital_status },
+                  { label: 'Telefone', value: patient.phone },
+                  { label: 'E-mail', value: patient.email },
+                  { label: 'Endereço', value: patient.address, full: true },
+                  { label: 'Contato de Emergência', value: patient.emergency_contact, full: true },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    backgroundColor: 'var(--color-background)',
+                    padding: '1rem 1.25rem',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border)',
+                    gridColumn: item.full && !isMobile ? 'span 2' : 'auto',
+                    display: 'flex', flexDirection: 'column', gap: '0.25rem'
+                  }}>
+                    <strong style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</strong>
+                    <span style={{ color: 'var(--color-text-main)', fontSize: '1rem', fontWeight: 500 }}>{item.value || '-'}</span>
+                  </div>
+                ))}
               </>
             ) : (
               <>
@@ -215,19 +268,33 @@ export default function PatientDetail() {
         <div>
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Histórico Completo</h3>
-            <button onClick={() => setShowNoteModal(true)} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
-              <Plus size={20} /> Evolução Avulsa
-            </button>
+            
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
+              <select className="input-control" style={{ width: 'auto' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+                <option value="all">Todas as Consultas</option>
+                <option value="month">Este Mês</option>
+                <option value="week">Esta Semana</option>
+                <option value="specific">Data Específica</option>
+              </select>
+              
+              {filterType === 'specific' && (
+                <input type="date" className="input-control" style={{ width: 'auto' }} value={filterDate} onChange={e => setFilterDate(e.target.value)} />
+              )}
+
+              <button onClick={() => setShowNoteModal(true)} className="btn btn-primary" style={{ width: isMobile ? '100%' : 'auto' }}>
+                <Plus size={20} /> Evolução Avulsa
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {appointments.length === 0 ? (
+            {filteredAppointments.length === 0 ? (
               <div style={{ backgroundColor: 'var(--color-surface)', padding: '3rem', textAlign: 'center', borderRadius: 'var(--radius-xl)', color: 'var(--color-text-muted)' }}>
-                Nenhum histórico registrado para este paciente.
+                Nenhum histórico encontrado com estes filtros.
               </div>
             ) : (
-              [...appointments].sort((a,b) => new Date(b.date_time) - new Date(a.date_time)).map(appt => (
-                <div key={appt.id} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', borderLeft: '4px solid var(--color-primary)' }}>
+              filteredAppointments.map(appt => (
+                <div key={appt.id} onClick={() => setSelectedAppointment(appt)} style={{ cursor: 'pointer', backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', borderLeft: '4px solid var(--color-primary)' }}>
                   <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
                     <div>
                       <strong style={{ fontSize: '1.125rem', color: 'var(--color-primary)' }}>{new Date(appt.date_time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</strong>
@@ -241,26 +308,10 @@ export default function PatientDetail() {
                     </div>
                   </div>
                   
-                  {appt.notes ? (
-                    <div style={{ 
-                      whiteSpace: 'pre-wrap', 
-                      overflowWrap: 'break-word', 
-                      wordBreak: 'break-word', 
-                      color: 'var(--color-text-main)', 
-                      lineHeight: '1.6', 
-                      backgroundColor: 'var(--color-background)', 
-                      padding: '1rem', 
-                      borderRadius: 'var(--radius-md)', 
-                      border: '1px solid var(--color-border)',
-                      maxWidth: '100%'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        <FileText size={14} /> Anotações da Sessão
-                      </div>
-                      {appt.notes}
+                  {appt.notes && (
+                    <div style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FileText size={16} /> Ver Anotações da Sessão
                     </div>
-                  ) : (
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0, padding: '0.5rem 0' }}>Sem anotações clínicas para esta consulta.</p>
                   )}
                 </div>
               ))
@@ -369,8 +420,14 @@ export default function PatientDetail() {
               </div>
 
               <div className="input-group">
-                <label>Anotações</label>
-                <textarea className="input-control" rows="8" required value={newNote.notes} onChange={e => setNewNote({...newNote, notes: e.target.value})} placeholder="Escreva a evolução clínica do paciente..."></textarea>
+                <label>Anotações / Evolução</label>
+                <div style={{ backgroundColor: 'white', borderRadius: '8px', overflow: 'hidden' }}>
+                  <RichTextEditor 
+                    value={newNote.notes || ''} 
+                    onChange={val => setNewNote({...newNote, notes: val})} 
+                    placeholder="Digite a evolução detalhada do paciente aqui..."
+                  />
+                </div>
               </div>
               
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
@@ -380,6 +437,62 @@ export default function PatientDetail() {
             </form>
           </div>
         </div>
+      )}
+      {/* Modal para Visualizar Consulta */}
+      {selectedAppointment && (
+        <ModalPortal>
+          <div className="modal-overlay">
+            <div className="modal-content" style={{ maxWidth: '600px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Detalhes da Consulta</h3>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Data e Hora</strong>
+                  <span>{new Date(selectedAppointment.date_time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                </div>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Valor da Sessão</strong>
+                  <span>R$ {selectedAppointment.fee?.toFixed(2)}</span>
+                </div>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Status</strong>
+                  <span className={`badge ${selectedAppointment.status === 'Confirmada' ? 'badge-primary' : selectedAppointment.status === 'Realizada' ? 'badge-success' : selectedAppointment.status === 'Cancelada' ? 'badge-error' : 'badge-warning'}`}>{selectedAppointment.status}</span>
+                </div>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Pagamento</strong>
+                  <span className={`badge ${selectedAppointment.is_paid ? 'badge-success' : 'badge-warning'}`}>{selectedAppointment.is_paid ? 'Pago' : 'Pendente'}</span>
+                </div>
+              </div>
+
+              {selectedAppointment.notes && (
+                <div style={{ marginTop: '1rem' }}>
+                  <strong style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Evolução / Anotações</strong>
+                  <div style={{ 
+                    whiteSpace: 'pre-wrap', 
+                    overflowWrap: 'break-word', 
+                    wordBreak: 'break-word', 
+                    color: 'var(--color-text-main)', 
+                    lineHeight: '1.6', 
+                    backgroundColor: 'var(--color-background)', 
+                    padding: '1rem', 
+                    borderRadius: 'var(--radius-md)', 
+                    border: '1px solid var(--color-border)',
+                    maxHeight: '300px',
+                    overflowY: 'auto'
+                  }}>
+                    <div className="quill-content" dangerouslySetInnerHTML={{ __html: selectedAppointment.notes }} />
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                <button type="button" className="btn btn-primary" onClick={() => setSelectedAppointment(null)}>Fechar</button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </div>
   );

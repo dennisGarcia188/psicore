@@ -22,6 +22,7 @@ def create_patient(patient: schemas.PatientCreate, background_tasks: BackgroundT
     # Enviar e-mail em background
     background_tasks.add_task(send_welcome_email, db_patient.name, db_patient.email, current_user.name)
     
+    models.log_audit(db, current_user.id, "Create", "Patient", db_patient.id)
     return db_patient
 
 @router.get("/", response_model=List[schemas.Patient])
@@ -34,6 +35,7 @@ def read_patient(patient_id: int, db: Session = Depends(get_db), current_user: m
     patient = db.query(models.Patient).filter(models.Patient.id == patient_id, models.Patient.owner_id == current_user.id).first()
     if patient is None:
         raise HTTPException(status_code=404, detail="Paciente não encontrado")
+    models.log_audit(db, current_user.id, "View", "Patient", patient.id)
     return patient
 
 @router.put("/{patient_id}", response_model=schemas.Patient)
@@ -47,6 +49,7 @@ def update_patient(patient_id: int, patient_update: schemas.PatientCreate, db: S
         
     db.commit()
     db.refresh(db_patient)
+    models.log_audit(db, current_user.id, "Update", "Patient", patient_id)
     return db_patient
 
 @router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -57,6 +60,7 @@ def delete_patient(patient_id: int, db: Session = Depends(get_db), current_user:
     
     db.delete(db_patient)
     db.commit()
+    models.log_audit(db, current_user.id, "Delete", "Patient", patient_id)
     return None
 
 @router.get("/{patient_id}/documents", response_model=List[schemas.PatientDocument])

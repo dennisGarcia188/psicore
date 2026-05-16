@@ -176,24 +176,43 @@ export default function Reports() {
           </button>
         </>)}
 
-        <div className="table-container">
-          <table className="table">
-            <thead><tr><th>Paciente</th><th>Data</th><th>Horário</th><th>Status</th><th>Valor</th></tr></thead>
-            <tbody>
-              {byDateData.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro no período.</td></tr>
-              ) : byDateData.map(a => (
-                <tr key={a.id}>
-                  <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{format(new Date(a.date_time), 'dd/MM/yy')}</td>
-                  <td>{format(new Date(a.date_time), 'HH:mm')}</td>
-                  <td><span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[a.status]}18`, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
-                  <td>R$ {a.fee?.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+            {byDateData.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro no período.</div>
+            ) : byDateData.map(a => (
+              <div key={a.id} style={{ backgroundColor: 'var(--color-background)', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: '1rem', color: 'var(--color-text-main)' }}>{a.patient_name}</strong>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[a.status]}18`, color: STATUS_COLOR[a.status] }}>{a.status}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                  <span>{format(new Date(a.date_time), 'dd/MM/yyyy')} às {format(new Date(a.date_time), 'HH:mm')}</span>
+                  <strong style={{ color: 'var(--color-text-main)' }}>R$ {a.fee?.toFixed(2)}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="table">
+              <thead><tr><th>Paciente</th><th>Data</th><th>Horário</th><th>Status</th><th>Valor</th></tr></thead>
+              <tbody>
+                {byDateData.length === 0 ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Nenhum registro no período.</td></tr>
+                ) : byDateData.map(a => (
+                  <tr key={a.id}>
+                    <td style={{ fontWeight: 600 }}>{a.patient_name}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{format(new Date(a.date_time), 'dd/MM/yy')}</td>
+                    <td>{format(new Date(a.date_time), 'HH:mm')}</td>
+                    <td><span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '99px', backgroundColor: `${STATUS_COLOR[a.status]}18`, color: STATUS_COLOR[a.status] }}>{a.status}</span></td>
+                    <td>R$ {a.fee?.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </>)}
 
       {/* ── TAB: POR PERÍODO ────────────────────────────────────────────────── */}

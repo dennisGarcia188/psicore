@@ -1,8 +1,38 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, DateTime, Boolean, Enum
 from sqlalchemy.orm import relationship
+from sqlalchemy.types import TypeDecorator
 import datetime
 import enum
+import os
 from database import Base
+
+# Setup Encryption
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+fernet = None
+if ENCRYPTION_KEY:
+    try:
+        from cryptography.fernet import Fernet
+        fernet = Fernet(ENCRYPTION_KEY)
+    except ImportError:
+        pass
+
+class EncryptedText(TypeDecorator):
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None and fernet:
+            return fernet.encrypt(str(value).encode('utf-8')).decode('utf-8')
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None and fernet:
+            try:
+                return fernet.decrypt(str(value).encode('utf-8')).decode('utf-8')
+            except Exception:
+                # Fallback para leitura de dados não-criptografados legados
+                return value
+        return value
 
 class AppointmentStatus(str, enum.Enum):
     PENDING = "Aguardando Confirmação"
@@ -74,7 +104,7 @@ class Appointment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     date_time = Column(DateTime)
-    notes = Column(Text, nullable=True)
+    notes = Column(EncryptedText, nullable=True)
     status = Column(String, default=AppointmentStatus.CONFIRMED.value)
     fee = Column(Float, default=0.0)
     is_paid = Column(Boolean, default=False)
@@ -131,3 +161,19 @@ class PatientDocument(Base):
     patient = relationship("Patient", backref="documents")
     owner = relationship("User", backref="documents")
 
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    action = Column(String, nullable=False)
+    entity = Column(String, nullable=False)
+    entity_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User")
+
+def log_audit(db, user_id: int, action: str, entity: str, entity_id: int = None):
+    audit = AuditLog(user_id=user_id, action=action, entity=entity, entity_id=entity_id)
+    db.add(audit)
+    db.commit()

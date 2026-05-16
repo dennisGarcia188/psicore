@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, CalendarPlus } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, X } from 'lucide-react';
 import api from '../api';
 import DateTimePicker from '../components/DateTimePicker';
 import CurrencyInput from 'react-currency-input-field';
+import ModalPortal from '../components/ModalPortal';
 
 export default function AppointmentForm() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function AppointmentForm() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [conflictMsg, setConflictMsg] = useState('');
 
   useEffect(() => { fetchPatients(); }, []);
 
@@ -45,7 +47,11 @@ export default function AppointmentForm() {
       });
       navigate('/dashboard/calendar');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Erro ao criar agendamento.');
+      if (err.response?.status === 409) {
+        setConflictMsg(err.response.data.detail);
+      } else {
+        setError(err.response?.data?.detail || 'Erro ao criar agendamento.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -139,6 +145,32 @@ export default function AppointmentForm() {
           </button>
         </form>
       </div>
+
+      {/* ── Modal de Conflito de Horário ── */}
+      {conflictMsg && (
+        <ModalPortal>
+          <div className="modal-overlay" style={{ zIndex: 10000 }}>
+            <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center', padding: '2rem' }}>
+              <div style={{ display: 'inline-flex', backgroundColor: '#FEF2F2', padding: '1rem', borderRadius: '50%', marginBottom: '1rem' }}>
+                <X size={32} color="#EF4444" />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>
+                Horário Indisponível
+              </h3>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                {conflictMsg}
+              </p>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => setConflictMsg('')}
+              >
+                Entendi, voltar
+              </button>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }

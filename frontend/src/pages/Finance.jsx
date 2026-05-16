@@ -357,10 +357,11 @@ export default function Finance() {
             <button
               onClick={() => togglePayment(detailAppt)}
               className={`btn ${detailAppt.is_paid ? 'btn-secondary' : 'btn-primary'}`}
-              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
+              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem', opacity: detailAppt.is_paid ? 0.6 : 1, cursor: detailAppt.is_paid ? 'not-allowed' : 'pointer' }}
+              disabled={detailAppt.is_paid}
             >
               {detailAppt.is_paid
-                ? <><Clock size={16} /> Marcar como Pendente</>
+                ? <><CheckCircle size={16} /> Pagamento Confirmado</>
                 : <><CheckCircle size={16} /> Confirmar Pagamento</>
               }
             </button>

@@ -116,6 +116,7 @@ export default function CalendarView() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [newError, setNewError] = useState('');
+  const [conflictMsg, setConflictMsg] = useState('');
 
   // Painel lateral de atendimentos do dia (mobile)
   const [dayPanelDate, setDayPanelDate] = useState(null);
@@ -203,8 +204,11 @@ export default function CalendarView() {
       handleCloseModal();
       fetchData();
     } catch (err) {
-      console.error(err);
-      alert('Erro ao atualizar agendamento');
+      if (err.response?.status === 409) {
+        setConflictMsg(err.response.data.detail);
+      } else {
+        alert('Erro ao atualizar agendamento');
+      }
     }
   };
 
@@ -231,9 +235,28 @@ export default function CalendarView() {
     setShowNewModal(true);
   };
 
-  // ── Clique num SLOT (desktop: abre modal novo agendamento) ─────────────────
-  const handleSelectSlot = ({ start }) => {
-    if (!isMobile) openNewModal(start);
+  const handleSelectSlot = ({ start, action }) => {
+    if (isMobile) return;
+    
+    if (currentView === Views.MONTH) {
+      const dayEvts = events.filter(e => {
+        const d = new Date(e.start);
+        return (
+          d.getFullYear() === start.getFullYear() &&
+          d.getMonth()    === start.getMonth()    &&
+          d.getDate()     === start.getDate()
+        );
+      });
+
+      if (dayEvts.length > 0) {
+        setDayPanelDate(start);
+        setDayPanelEvents(dayEvts);
+      } else {
+        openNewModal(start);
+      }
+    } else {
+      openNewModal(start);
+    }
   };
 
   // ── Drill-down: clique num DIA no calendário de MÊS ─────────────────────
@@ -277,7 +300,11 @@ export default function CalendarView() {
       setDayPanelDate(null);
       await fetchAllAppointments();
     } catch (err) {
-      setNewError(err.response?.data?.detail || 'Erro ao criar agendamento.');
+      if (err.response?.status === 409) {
+        setConflictMsg(err.response.data.detail);
+      } else {
+        setNewError(err.response?.data?.detail || 'Erro ao criar agendamento.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -576,6 +603,32 @@ export default function CalendarView() {
             onSave={handleSaveModal}
             onDelete={handleDeleteModal}
           />
+        </ModalPortal>
+      )}
+
+      {/* ── Modal de Conflito de Horário ── */}
+      {conflictMsg && (
+        <ModalPortal>
+          <div className="modal-overlay" style={{ zIndex: 10000 }}>
+            <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center', padding: '2rem' }}>
+              <div style={{ display: 'inline-flex', backgroundColor: '#FEF2F2', padding: '1rem', borderRadius: '50%', marginBottom: '1rem' }}>
+                <X size={32} color="#EF4444" />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>
+                Horário Indisponível
+              </h3>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                {conflictMsg}
+              </p>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => setConflictMsg('')}
+              >
+                Entendi, voltar
+              </button>
+            </div>
+          </div>
         </ModalPortal>
       )}
     </div>

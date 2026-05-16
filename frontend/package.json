@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tiptap/extension-placeholder": "^3.23.4",
+    "@tiptap/react": "^3.23.4",
+    "@tiptap/starter-kit": "^3.23.4",
     "axios": "^1.16.0",
     "date-fns": "^4.1.0",
     "jspdf": "^4.2.1",

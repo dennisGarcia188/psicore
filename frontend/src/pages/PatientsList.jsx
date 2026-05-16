@@ -197,7 +197,7 @@ export default function PatientsList() {
                 </button>
               </div>
                <form onSubmit={handleCreatePatient}>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0 1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                   <div className="input-group" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
                     <label>Nome Completo *</label>
                     <input type="text" className="input-control" required value={newPatient.name} onChange={e => setNewPatient({...newPatient, name: e.target.value})} placeholder="Ex: João da Silva" />
