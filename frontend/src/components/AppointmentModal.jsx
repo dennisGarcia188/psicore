@@ -5,6 +5,7 @@ import CurrencyInput from 'react-currency-input-field';
 import { format as fmt } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ConfirmModal from './ConfirmModal';
+import RichTextEditor from './RichTextEditor';
 
 const STATUS_COLORS = {
   'Confirmada': '#10B981',
@@ -186,11 +187,10 @@ export default function AppointmentModal({
             <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
               📝 Anotações desta sessão
             </label>
-            <textarea
-              value={editNotes}
-              onChange={e => setEditNotes(e.target.value)}
+            <RichTextEditor
+              value={editNotes || ''}
+              onChange={val => setEditNotes(val)}
               placeholder="Descreva as observações clínicas desta sessão..."
-              style={{ width: '100%', minHeight: '180px', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text-main)', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.7, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
         )}

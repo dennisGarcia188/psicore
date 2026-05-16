@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from routers import auth, patients, appointments, templates, settings, admin
 
-# Cria as tabelas no banco de dados (pode ser substituído pelo Alembic no futuro, mas útil para o início)
-# Base.metadata.create_all(bind=engine)
+# Cria as tabelas no banco de dados
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Gestão para Psicólogos")
 
